@@ -8,7 +8,9 @@ export async function publishToInstagram(
   accessTokenEncrypted: string,
   instagramAccountId: string,
   caption: string,
-  imageUrl: string
+  imageUrl: string,
+  postId?: string,
+  host?: string
 ): Promise<PublishResult> {
   // 1. トークンの復号化
   let decryptedToken = '';
@@ -52,11 +54,74 @@ export async function publishToInstagram(
     }
   }
 
-  // TODO: Phase 2 で本物リクエストを実装
-  // 1. POST /v20.0/{instagramAccountId}/media (image_url, caption) -> creation_id
-  // 2. POST /v20.0/{instagramAccountId}/media_publish (creation_id)
-  return {
-    status: 'success',
-    external_post_id: `ig_real_post_${Date.now()}`,
-  };
+  // 3. 本物リクエストの実行
+  try {
+    let publicImageUrl = imageUrl;
+    if (imageUrl && imageUrl.startsWith('data:') && postId && host) {
+      const protocol = host.includes('localhost') ? 'http' : 'https';
+      publicImageUrl = `${protocol}://${host}/api/posts/${postId}/image`;
+    }
+
+    // 1. Create Media Container
+    const containerUrl = `https://graph.facebook.com/v20.0/${instagramAccountId}/media`;
+    const containerRes = await fetch(containerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        image_url: publicImageUrl,
+        caption: caption,
+        access_token: decryptedToken,
+      }).toString(),
+    });
+
+    const containerData = await containerRes.json();
+    if (!containerRes.ok || containerData.error) {
+      console.error('Instagram Container Creation Error:', containerData.error);
+      return {
+        status: 'failed',
+        error_message: containerData.error?.message || 'Failed to create Instagram media container.',
+      };
+    }
+
+    const creationId = containerData.id;
+
+    // 2. Wait 3 seconds for Instagram to process the image container
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // 3. Publish Media Container
+    const publishUrl = `https://graph.facebook.com/v20.0/${instagramAccountId}/media_publish`;
+    const publishRes = await fetch(publishUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        creation_id: creationId,
+        access_token: decryptedToken,
+      }).toString(),
+    });
+
+    const publishData = await publishRes.json();
+    if (!publishRes.ok || publishData.error) {
+      console.error('Instagram Publish Error:', publishData.error);
+      return {
+        status: 'failed',
+        error_message: publishData.error?.message || 'Failed to publish Instagram media container.',
+      };
+    }
+
+    return {
+      status: 'success',
+      external_post_id: publishData.id,
+    };
+  } catch (error: any) {
+    console.error('Instagram publish error:', error);
+    return {
+      status: 'failed',
+      error_message: error.message || 'Instagram API connection failed.',
+    };
+  }
 }
+

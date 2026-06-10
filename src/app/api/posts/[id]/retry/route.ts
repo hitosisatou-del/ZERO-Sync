@@ -40,6 +40,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ status: 'failed', error_message: errMsg });
     }
 
+    const host = request.headers.get('host') || 'zero-sync-delta.vercel.app';
+
     // 一時的に pending に更新
     await DBService.updatePostResult(postId, platform, { status: 'pending' });
 
@@ -51,7 +53,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         account.access_token,
         account.external_account_id || '',
         post.instagram_text || post.base_text,
-        post.image_url || ''
+        post.image_url || '',
+        postId,
+        host
       );
     } else if (platform === 'facebook') {
       result = await publishToFacebook(
@@ -59,7 +63,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         account.external_account_id || '',
         post.facebook_text || post.base_text,
         post.link_url,
-        post.image_url
+        post.image_url,
+        postId,
+        host
       );
     } else if (platform === 'google_business_profile') {
       result = await publishToGoogleBusiness(
@@ -67,7 +73,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         account.external_account_id || '',
         post.google_business_text || post.base_text,
         post.link_url,
-        post.image_url
+        post.image_url,
+        postId,
+        host
       );
     }
 

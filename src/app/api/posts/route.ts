@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
       platforms
     );
 
+    const host = request.headers.get('host') || 'zero-sync-delta.vercel.app';
+
     // 2. 連携済みのアカウント情報を取得
     const connectedAccounts = await DBService.getConnectedAccounts();
 
@@ -63,7 +65,9 @@ export async function POST(request: NextRequest) {
             account.access_token,
             account.external_account_id || '',
             instagram_text || base_text,
-            image_url || ''
+            image_url || '',
+            post.id,
+            host
           );
           await DBService.updatePostResult(post.id, 'instagram', result);
         } else if (platform === 'facebook') {
@@ -73,7 +77,9 @@ export async function POST(request: NextRequest) {
             account.external_account_id || '',
             facebook_text || base_text,
             link_url,
-            image_url
+            image_url,
+            post.id,
+            host
           );
           await DBService.updatePostResult(post.id, 'facebook', result);
         } else if (platform === 'google_business_profile') {
@@ -83,7 +89,9 @@ export async function POST(request: NextRequest) {
             account.external_account_id || '',
             google_business_text || base_text,
             link_url,
-            image_url
+            image_url,
+            post.id,
+            host
           );
           await DBService.updatePostResult(post.id, 'google_business_profile', result);
         }

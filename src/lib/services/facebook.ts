@@ -14,7 +14,9 @@ export async function publishToFacebook(
   pageId: string,
   message: string,
   linkUrl: string | null,
-  imageUrl: string | null
+  imageUrl: string | null,
+  postId?: string,
+  host?: string
 ): Promise<PublishResult> {
   // 1. トークンの復号化
   let decryptedToken = '';
@@ -51,10 +53,59 @@ export async function publishToFacebook(
     }
   }
 
-  // TODO: Phase 2 で本物リクエストを実装
-  // fetch('https://graph.facebook.com/v20.0/' + pageId + '/feed', { ... })
-  return {
-    status: 'success',
-    external_post_id: `fb_real_post_${Date.now()}`,
-  };
+  // 3. 本物リクエストの実行
+  try {
+    let publicImageUrl = imageUrl;
+    if (imageUrl && imageUrl.startsWith('data:') && postId && host) {
+      const protocol = host.includes('localhost') ? 'http' : 'https';
+      publicImageUrl = `${protocol}://${host}/api/posts/${postId}/image`;
+    }
+
+    const url = publicImageUrl
+      ? `https://graph.facebook.com/v20.0/${pageId}/photos`
+      : `https://graph.facebook.com/v20.0/${pageId}/feed`;
+
+    const body: Record<string, string> = {
+      access_token: decryptedToken,
+    };
+
+    if (publicImageUrl) {
+      body.url = publicImageUrl;
+      body.caption = message;
+    } else {
+      body.message = message;
+      if (linkUrl) {
+        body.link = linkUrl;
+      }
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(body).toString(),
+    });
+
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      console.error('Facebook Graph API Error:', data.error);
+      return {
+        status: 'failed',
+        error_message: data.error?.message || 'Facebook Graph API Error',
+      };
+    }
+
+    return {
+      status: 'success',
+      external_post_id: data.id || data.post_id,
+    };
+  } catch (error: any) {
+    console.error('Facebook publish error:', error);
+    return {
+      status: 'failed',
+      error_message: error.message || 'Facebook API connection failed.',
+    };
+  }
 }
+
