@@ -43,6 +43,137 @@
   
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Glow and hover variables (Default: Midnight Cosmic) */
+  --glow-color-1: rgba(99, 102, 241, 0.05);
+  --glow-color-2: rgba(168, 85, 247, 0.03);
+  
+  --card-hover-border: rgba(99, 102, 241, 0.2);
+  --card-hover-glow: rgba(99, 102, 241, 0.05);
+  --card-hover-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  
+  --focus-glow: rgba(99, 102, 241, 0.15);
+  
+  --btn-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  --btn-shadow-hover: 0 6px 20px rgba(99, 102, 241, 0.4), var(--accent-glow);
+  
+  --nav-active-bg: rgba(99, 102, 241, 0.12);
+  --nav-active-border: rgba(99, 102, 241, 0.2);
+}
+
+/* ==========================================================================
+   Themes Configuration
+   ========================================================================== */
+
+/* 2. Light Cyber */
+[data-theme="light-cyber"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  
+  --accent-primary: #4f46e5;
+  --accent-secondary: #7c3aed;
+  --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --accent-glow: 0 0 20px rgba(79, 70, 229, 0.25);
+  
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-focus: rgba(79, 70, 229, 0.4);
+  
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(15, 23, 42, 0.06);
+  --glass-shadow: 0 8px 32px 0 rgba(148, 163, 184, 0.06);
+
+  --glow-color-1: rgba(79, 70, 229, 0.03);
+  --glow-color-2: rgba(124, 58, 237, 0.02);
+  
+  --card-hover-border: rgba(79, 70, 229, 0.25);
+  --card-hover-glow: rgba(79, 70, 229, 0.08);
+  --card-hover-shadow: 0 12px 40px 0 rgba(148, 163, 184, 0.15);
+  
+  --focus-glow: rgba(79, 70, 229, 0.15);
+  
+  --btn-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
+  --btn-shadow-hover: 0 6px 20px rgba(79, 70, 229, 0.35), var(--accent-glow);
+  
+  --nav-active-bg: rgba(79, 70, 229, 0.1);
+  --nav-active-border: rgba(79, 70, 229, 0.15);
+}
+
+/* 3. Sunset Cyberpunk */
+[data-theme="sunset-cyberpunk"] {
+  --bg-primary: #0b0714;
+  --bg-secondary: #130b24;
+  --bg-tertiary: #1f1235;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  
+  --accent-primary: #ec4899;
+  --accent-secondary: #f43f5e;
+  --accent-gradient: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  --accent-glow: 0 0 20px rgba(236, 72, 153, 0.4);
+  
+  --border-color: rgba(236, 72, 153, 0.15);
+  --border-focus: rgba(236, 72, 153, 0.6);
+  
+  --glass-bg: rgba(19, 11, 36, 0.75);
+  --glass-border: rgba(236, 72, 153, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.1);
+
+  --glow-color-1: rgba(236, 72, 153, 0.08);
+  --glow-color-2: rgba(244, 63, 94, 0.04);
+  
+  --card-hover-border: rgba(236, 72, 153, 0.35);
+  --card-hover-glow: rgba(236, 72, 153, 0.15);
+  --card-hover-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+  
+  --focus-glow: rgba(236, 72, 153, 0.2);
+  
+  --btn-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+  --btn-shadow-hover: 0 6px 20px rgba(236, 72, 153, 0.4), var(--accent-glow);
+  
+  --nav-active-bg: rgba(236, 72, 153, 0.15);
+  --nav-active-border: rgba(236, 72, 153, 0.25);
+}
+
+/* 4. Emerald Forest */
+[data-theme="emerald-forest"] {
+  --bg-primary: #040d0a;
+  --bg-secondary: #0a1713;
+  --bg-tertiary: #10241e;
+  --text-primary: #f0fdf4;
+  --text-secondary: #a7f3d0;
+  --text-muted: #6ee7b7;
+  
+  --accent-primary: #10b981;
+  --accent-secondary: #059669;
+  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --accent-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+  
+  --border-color: rgba(16, 185, 129, 0.12);
+  --border-focus: rgba(16, 185, 129, 0.4);
+  
+  --glass-bg: rgba(10, 23, 19, 0.75);
+  --glass-border: rgba(16, 185, 129, 0.15);
+  --glass-shadow: 0 8px 32px 0 rgba(4, 13, 10, 0.3);
+
+  --glow-color-1: rgba(16, 185, 129, 0.05);
+  --glow-color-2: rgba(5, 150, 105, 0.03);
+  
+  --card-hover-border: rgba(16, 185, 129, 0.3);
+  --card-hover-glow: rgba(16, 185, 129, 0.08);
+  --card-hover-shadow: 0 12px 40px 0 rgba(4, 13, 10, 0.4);
+  
+  --focus-glow: rgba(16, 185, 129, 0.15);
+  
+  --btn-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+  --btn-shadow-hover: 0 6px 20px rgba(16, 185, 129, 0.35), var(--accent-glow);
+  
+  --nav-active-bg: rgba(16, 185, 129, 0.12);
+  --nav-active-border: rgba(16, 185, 129, 0.2);
 }
 
 * {
@@ -113,8 +244,8 @@ a {
   padding: 2.5rem;
   min-height: 100vh;
   position: relative;
-  background: radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-              radial-gradient(circle at 10% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 50%),
+  background: radial-gradient(circle at 80% 20%, var(--glow-color-1) 0%, transparent 50%),
+              radial-gradient(circle at 10% 80%, var(--glow-color-2) 0%, transparent 50%),
               var(--bg-primary);
 }
 
@@ -161,8 +292,8 @@ p {
 }
 
 .card:hover {
-  border-color: rgba(99, 102, 241, 0.2);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.05);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow), 0 0 20px var(--card-hover-glow);
 }
 
 /* フォーム・入力要素 */
@@ -197,7 +328,7 @@ p {
 .form-select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px var(--focus-glow);
 }
 
 .form-textarea {
@@ -224,12 +355,12 @@ p {
 .btn-primary {
   background: var(--accent-gradient);
   color: var(--text-primary);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: var(--btn-shadow);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4), var(--accent-glow);
+  box-shadow: var(--btn-shadow-hover);
 }
 
 .btn-primary:active {
