@@ -10,6 +10,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || 'dummy-app-id',
 };
 
+console.log("DEBUG: Loaded Firebase API Key =", firebaseConfig.apiKey);
+
 // クライアント側でアプリを初期化
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
