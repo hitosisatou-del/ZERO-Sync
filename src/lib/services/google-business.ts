@@ -74,14 +74,24 @@ export async function publishToGoogleBusiness(
   postId?: string,
   host?: string
 ): Promise<PublishResult> {
-  // 1. 実APIとモックの分岐（ダミー環境チェック）
+  // 1. トークンの復号化とモックの分岐（ダミー環境チェック）
+  let decryptedToken = '';
+  try {
+    decryptedToken = decrypt(accessTokenEncrypted);
+  } catch (e) {
+    return {
+      status: 'failed',
+      error_message: 'アクセス権限の復号化に失敗しました。トークンが無効である可能性があります。',
+    };
+  }
+
+  const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
   const isDummyConfig = 
     process.env.GOOGLE_CLIENT_ID?.includes('dummy') || 
     !process.env.GOOGLE_CLIENT_ID;
-  const isDummyToken = accessTokenEncrypted === 'encrypted_dummy_token' || accessTokenEncrypted.includes('dummy');
 
   if (isDummyToken || isDummyConfig) {
-    // モック投稿の実行 (80%の確率で成功)
+    // モック投稿の実行 (85%の確率で成功)
     await new Promise((resolve) => setTimeout(resolve, 1200)); // 配信シミュレーション
     const success = Math.random() < 0.85;
 
@@ -230,10 +240,20 @@ export async function deleteFromGoogleBusiness(
   accessTokenEncrypted: string,
   externalPostId: string
 ): Promise<{ status: 'success' | 'failed'; error_message?: string }> {
+  let decryptedToken = '';
+  try {
+    decryptedToken = decrypt(accessTokenEncrypted);
+  } catch (e) {
+    return {
+      status: 'failed',
+      error_message: 'アクセス権限の復号化に失敗しました。',
+    };
+  }
+
+  const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
   const isDummyConfig = 
     process.env.GOOGLE_CLIENT_ID?.includes('dummy') || 
     !process.env.GOOGLE_CLIENT_ID;
-  const isDummyToken = accessTokenEncrypted === 'encrypted_dummy_token' || accessTokenEncrypted.includes('dummy');
 
   if (isDummyToken || isDummyConfig) {
     await new Promise((resolve) => setTimeout(resolve, 800));
