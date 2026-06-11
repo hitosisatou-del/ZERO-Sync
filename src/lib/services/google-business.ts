@@ -165,7 +165,10 @@ export async function publishToGoogleBusiness(
     }
 
     // 2. ローカル投稿の作成
-    const postUrl = `https://mybusiness.googleapis.com/v4/${parentAccountName}/${locationId}/localPosts`;
+    const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const postUrl = apiKey
+      ? `https://mybusiness.googleapis.com/v4/${parentAccountName}/${locationId}/localPosts?key=${apiKey}`
+      : `https://mybusiness.googleapis.com/v4/${parentAccountName}/${locationId}/localPosts`;
     
     const postBody: Record<string, any> = {
       languageCode: 'ja-JP',
@@ -248,7 +251,10 @@ export async function deleteFromGoogleBusiness(
     }
     const accessToken = await getFreshGoogleAccessToken(account);
 
-    const url = `https://mybusiness.googleapis.com/v4/${externalPostId}`;
+    const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const url = apiKey
+      ? `https://mybusiness.googleapis.com/v4/${externalPostId}?key=${apiKey}`
+      : `https://mybusiness.googleapis.com/v4/${externalPostId}`;
     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
