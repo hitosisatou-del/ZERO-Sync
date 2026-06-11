@@ -201,6 +201,9 @@ export class DBService {
       return { posts, results };
     } catch (e) {
       console.warn('Firestore fetch failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       return { posts: mockPosts, results: mockPostResults };
     }
   }
@@ -255,6 +258,9 @@ export class DBService {
       return { post, results };
     } catch (e) {
       console.warn('Firestore getPostById failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       const post = mockPosts.find((p) => p.id === id);
       if (!post) return null;
       const results = mockPostResults.filter((r) => r.post_id === id);
@@ -312,17 +318,17 @@ export class DBService {
       });
 
       const docRef = await adminDb.collection('posts').add({
-        title: postData.title,
+        title: postData.title !== undefined ? postData.title : null,
         base_text: postData.base_text,
-        instagram_text: postData.instagram_text,
-        facebook_text: postData.facebook_text,
-        google_business_text: postData.google_business_text,
-        link_url: postData.link_url,
-        image_url: postData.image_url,
+        instagram_text: postData.instagram_text !== undefined ? postData.instagram_text : null,
+        facebook_text: postData.facebook_text !== undefined ? postData.facebook_text : null,
+        google_business_text: postData.google_business_text !== undefined ? postData.google_business_text : null,
+        link_url: postData.link_url !== undefined ? postData.link_url : null,
+        image_url: postData.image_url !== undefined ? postData.image_url : null,
         created_at: nowStr,
         updated_at: nowStr,
         results: resultsMap,
-        scheduled_at: postData.scheduled_at || null,
+        scheduled_at: postData.scheduled_at !== undefined ? postData.scheduled_at : null,
       });
 
       return {
@@ -330,10 +336,13 @@ export class DBService {
         id: docRef.id,
         created_at: nowStr,
         updated_at: nowStr,
-        scheduled_at: postData.scheduled_at || null,
+        scheduled_at: postData.scheduled_at !== undefined ? postData.scheduled_at : null,
       };
     } catch (e) {
       console.warn('Firestore createPost failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       const newPost: Post = {
         ...postData,
         id: `post-${Date.now()}`,
@@ -414,6 +423,9 @@ export class DBService {
       await docRef.update(updateObj);
     } catch (e) {
       console.warn('Firestore updatePostResult failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       const result = mockPostResults.find((r) => r.post_id === postId && r.platform === platform);
       if (result) {
         result.status = updateData.status;
@@ -452,6 +464,9 @@ export class DBService {
       return accounts;
     } catch (e) {
       console.warn('Firestore getConnectedAccounts failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       return mockConnectedAccounts;
     }
   }
@@ -489,11 +504,11 @@ export class DBService {
       const docRef = adminDb.collection('connected_accounts').doc(accountData.platform);
       await docRef.set({
         platform: accountData.platform,
-        account_name: accountData.account_name,
-        external_account_id: accountData.external_account_id,
+        account_name: accountData.account_name !== undefined ? accountData.account_name : null,
+        external_account_id: accountData.external_account_id !== undefined ? accountData.external_account_id : null,
         access_token: accountData.access_token,
-        refresh_token: accountData.refresh_token,
-        token_expires_at: accountData.token_expires_at,
+        refresh_token: accountData.refresh_token !== undefined ? accountData.refresh_token : null,
+        token_expires_at: accountData.token_expires_at !== undefined ? accountData.token_expires_at : null,
         created_at: nowStr,
         updated_at: nowStr,
       }, { merge: true });
@@ -501,6 +516,9 @@ export class DBService {
       return newAccount;
     } catch (e) {
       console.warn('Firestore saveConnectedAccount failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       const index = mockConnectedAccounts.findIndex((a) => a.platform === accountData.platform);
       if (index !== -1) {
         mockConnectedAccounts[index] = {
@@ -529,6 +547,9 @@ export class DBService {
       await adminDb.collection('connected_accounts').doc(platform).delete();
     } catch (e) {
       console.warn('Firestore disconnectAccount failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       mockConnectedAccounts = mockConnectedAccounts.filter((a) => a.platform !== platform);
     }
   }
@@ -588,6 +609,9 @@ export class DBService {
       return { success: true, post, results };
     } catch (e) {
       console.warn('Firestore deletePost failed, falling back to mock DB:', e);
+      if (isFirebaseConfigured() && adminDb) {
+        throw e;
+      }
       const postIndex = mockPosts.findIndex((p) => p.id === id);
       if (postIndex === -1) return { success: false };
       const [deletedPost] = mockPosts.splice(postIndex, 1);

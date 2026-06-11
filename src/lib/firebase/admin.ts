@@ -45,4 +45,11 @@ const app = getAdminApp();
 
 export const adminAuth = app ? admin.auth(app) : null;
 export const adminDb = app ? admin.firestore(app) : null;
+if (adminDb) {
+  try {
+    adminDb.settings({ ignoreUndefinedProperties: true });
+  } catch (e) {
+    // Settings already initialized
+  }
+}
 export default app;
