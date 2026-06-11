@@ -67,15 +67,47 @@ export default function NewPostPage() {
     }
   };
 
-  // 画像の処理 (Base64への変換)
+  // 画像の処理 (Base64への変換 ＆ クライアント側での圧縮)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const img = new Image();
+      img.onload = () => {
+        // 最大解像度を1200pxに制限（SNS投稿用に十分なサイズ）
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // 画質80%のJPEG形式に圧縮してBase64化（Firestoreの1MB制限を回避するため）
+          const base64String = canvas.toDataURL('image/jpeg', 0.8);
+          setImagePreview(base64String);
+          setImageUrl(base64String);
+        }
+      };
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImagePreview(base64String);
-        setImageUrl(base64String);
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
