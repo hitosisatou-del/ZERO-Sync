@@ -25,6 +25,34 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
   const [results, setResults] = useState<PostResult[]>(initialResults);
   const [retryingPlatform, setRetryingPlatform] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!window.confirm('本当にこの投稿を削除しますか？\n（管理画面の履歴およびFacebook・Googleビジネスプロフィールの投稿が削除されます。Instagramは削除されません）')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '投稿の削除に失敗しました。');
+      }
+
+      router.push('/');
+      router.refresh();
+    } catch (err: any) {
+      setError(`投稿の削除中にエラーが発生しました: ${err.message}`);
+      setIsDeleting(false);
+    }
+  };
 
   // 各SNSのアイコン取得
   const getPlatformIcon = (platform: string, size = 20) => {
@@ -373,6 +401,28 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                 );
               })}
             </div>
+          </div>
+
+          {/* 危険ゾーン */}
+          <div className="card" style={{ 
+            borderColor: 'rgba(239, 68, 68, 0.15)',
+            background: 'rgba(239, 68, 68, 0.01)'
+          }}>
+            <h3 style={{ fontSize: '1.05rem', color: '#f87171', marginBottom: '0.75rem', fontWeight: 600 }}>
+              危険ゾーン (Danger Zone)
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: 1.4 }}>
+              管理画面の投稿履歴からこのデータを削除します。<br />
+              また、FacebookとGoogleの投稿も自動的に連動削除されます。（※Instagramは仕様上、連動削除できません）
+            </p>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="btn btn-danger"
+              style={{ width: '100%', padding: '0.65rem 1rem', fontSize: '0.9rem' }}
+            >
+              {isDeleting ? '削除処理中...' : 'この投稿を削除する'}
+            </button>
           </div>
         </div>
       </div>

@@ -523,4 +523,68 @@ export class DBService {
       mockConnectedAccounts = mockConnectedAccounts.filter((a) => a.platform !== platform);
     }
   }
+
+  /**
+   * 投稿とその結果を削除
+   */
+  static async deletePost(id: string): Promise<{ success: boolean; post?: Post; results?: PostResult[] }> {
+    const nowStr = new Date().toISOString();
+
+    if (!isFirebaseConfigured() || !adminDb) {
+      const postIndex = mockPosts.findIndex((p) => p.id === id);
+      if (postIndex === -1) return { success: false };
+      const [deletedPost] = mockPosts.splice(postIndex, 1);
+      const deletedResults = mockPostResults.filter((r) => r.post_id === id);
+      mockPostResults = mockPostResults.filter((r) => r.post_id !== id);
+      return { success: true, post: deletedPost, results: deletedResults };
+    }
+
+    try {
+      const docRef = adminDb.collection('posts').doc(id);
+      const doc = await docRef.get();
+      if (!doc.exists) return { success: false };
+
+      const data = doc.data()!;
+      const post: Post = {
+        id: doc.id,
+        title: data.title || null,
+        base_text: data.base_text,
+        instagram_text: data.instagram_text || null,
+        facebook_text: data.facebook_text || null,
+        google_business_text: data.google_business_text || null,
+        link_url: data.link_url || null,
+        image_url: data.image_url || null,
+        created_at: data.created_at || nowStr,
+        updated_at: data.updated_at || nowStr,
+      };
+
+      const results: PostResult[] = [];
+      if (data.results) {
+        Object.keys(data.results).forEach((platform) => {
+          const res = data.results[platform];
+          results.push({
+            id: `${doc.id}_${platform}`,
+            post_id: doc.id,
+            platform: platform as any,
+            status: res.status || 'pending',
+            external_post_id: res.external_post_id || null,
+            error_message: res.error_message || null,
+            created_at: res.created_at || data.created_at || nowStr,
+            updated_at: res.updated_at || data.updated_at || nowStr,
+          });
+        });
+      }
+
+      await docRef.delete();
+      return { success: true, post, results };
+    } catch (e) {
+      console.warn('Firestore deletePost failed, falling back to mock DB:', e);
+      const postIndex = mockPosts.findIndex((p) => p.id === id);
+      if (postIndex === -1) return { success: false };
+      const [deletedPost] = mockPosts.splice(postIndex, 1);
+      const deletedResults = mockPostResults.filter((r) => r.post_id === id);
+      mockPostResults = mockPostResults.filter((r) => r.post_id !== id);
+      return { success: true, post: deletedPost, results: deletedResults };
+    }
+  }
 }

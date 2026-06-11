@@ -109,3 +109,55 @@ export async function publishToFacebook(
   }
 }
 
+/**
+ * Facebookページから投稿を削除します
+ */
+export async function deleteFromFacebook(
+  accessTokenEncrypted: string,
+  externalPostId: string
+): Promise<{ status: 'success' | 'failed'; error_message?: string }> {
+  let decryptedToken = '';
+  try {
+    decryptedToken = decrypt(accessTokenEncrypted);
+  } catch (e) {
+    return {
+      status: 'failed',
+      error_message: 'アクセス権限の復号化に失敗しました。',
+    };
+  }
+
+  const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
+  const isDummyConfig = 
+    process.env.META_APP_ID?.includes('dummy') || 
+    !process.env.META_APP_ID;
+
+  if (isDummyToken || isDummyConfig) {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    return { status: 'success' };
+  }
+
+  try {
+    const url = `https://graph.facebook.com/v20.0/${externalPostId}`;
+    const response = await fetch(`${url}?access_token=${decryptedToken}`, {
+      method: 'DELETE',
+    });
+
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      console.error('Facebook Delete Error:', data.error);
+      return {
+        status: 'failed',
+        error_message: data.error?.message || 'Facebook Graph API Delete Error',
+      };
+    }
+
+    return { status: 'success' };
+  } catch (error: any) {
+    console.error('Facebook delete error:', error);
+    return {
+      status: 'failed',
+      error_message: error.message || 'Facebook API connection failed.',
+    };
+  }
+}
+

@@ -220,3 +220,58 @@ export async function publishToGoogleBusiness(
   }
 }
 
+/**
+ * Googleビジネスプロフィールから投稿を削除します
+ */
+export async function deleteFromGoogleBusiness(
+  accessTokenEncrypted: string,
+  externalPostId: string
+): Promise<{ status: 'success' | 'failed'; error_message?: string }> {
+  const isDummyConfig = 
+    process.env.GOOGLE_CLIENT_ID?.includes('dummy') || 
+    !process.env.GOOGLE_CLIENT_ID;
+  const isDummyToken = accessTokenEncrypted === 'encrypted_dummy_token' || accessTokenEncrypted.includes('dummy');
+
+  if (isDummyToken || isDummyConfig) {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    return { status: 'success' };
+  }
+
+  try {
+    const accounts = await DBService.getConnectedAccounts();
+    const account = accounts.find((a) => a.platform === 'google_business_profile');
+    if (!account) {
+      return {
+        status: 'failed',
+        error_message: 'Googleビジネスプロフィールの連携アカウント情報が見つかりません。',
+      };
+    }
+    const accessToken = await getFreshGoogleAccessToken(account);
+
+    const url = `https://mybusiness.googleapis.com/v4/${externalPostId}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      console.error('Google Local Post Delete Error:', data.error);
+      return {
+        status: 'failed',
+        error_message: data.error?.message || 'Failed to delete Google local post.',
+      };
+    }
+
+    return { status: 'success' };
+  } catch (error: any) {
+    console.error('Google delete error:', error);
+    return {
+      status: 'failed',
+      error_message: error.message || 'Google API connection failed.',
+    };
+  }
+}
+
