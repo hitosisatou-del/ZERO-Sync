@@ -22,6 +22,8 @@ export default function NewPostPage() {
   const [linkUrl, setLinkUrl] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [publishMethod, setPublishMethod] = useState<'now' | 'schedule'>('now');
+  const [scheduledAt, setScheduledAt] = useState('');
   
   // プラットフォーム選択
   const [platforms, setPlatforms] = useState({
@@ -109,6 +111,18 @@ export default function NewPostPage() {
       return;
     }
 
+    if (publishMethod === 'schedule') {
+      if (!scheduledAt) {
+        setError('配信予定日時を指定してください。');
+        return;
+      }
+      const scheduledDate = new Date(scheduledAt);
+      if (scheduledDate <= new Date()) {
+        setError('配信予定日時は現在よりも未来の時間を指定してください。');
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -127,6 +141,7 @@ export default function NewPostPage() {
           link_url: linkUrl || null,
           image_url: imageUrl || null,
           platforms: selectedPlatforms,
+          scheduled_at: publishMethod === 'schedule' ? new Date(scheduledAt).toISOString() : null,
         }),
       });
 
@@ -288,6 +303,53 @@ export default function NewPostPage() {
                   >
                     <X size={16} />
                   </button>
+                </div>
+              )}
+            </div>
+
+            <div className="form-group" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginBottom: 0 }}>
+              <label className="form-label">配信設定</label>
+              <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.95rem' }}>
+                  <input
+                    type="radio"
+                    name="publishMethod"
+                    checked={publishMethod === 'now'}
+                    onChange={() => setPublishMethod('now')}
+                    style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px' }}
+                    disabled={isLoading}
+                  />
+                  <span>即時配信</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.95rem' }}>
+                  <input
+                    type="radio"
+                    name="publishMethod"
+                    checked={publishMethod === 'schedule'}
+                    onChange={() => setPublishMethod('schedule')}
+                    style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px' }}
+                    disabled={isLoading}
+                  />
+                  <span>予約配信</span>
+                </label>
+              </div>
+
+              {publishMethod === 'schedule' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', animation: 'fade-in 0.2s ease-out' }}>
+                  <label htmlFor="scheduledAt" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>配信予定日時</label>
+                  <input
+                    id="scheduledAt"
+                    type="datetime-local"
+                    value={scheduledAt}
+                    onChange={(e) => setScheduledAt(e.target.value)}
+                    className="form-input"
+                    required={publishMethod === 'schedule'}
+                    min={new Date(Date.now() + 60000).toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' }).slice(0, 16).replace(' ', 'T')} // Limit to future time in local time
+                    disabled={isLoading}
+                  />
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    指定した日時に各SNSへ自動的に投稿が送信されます。
+                  </span>
                 </div>
               )}
             </div>

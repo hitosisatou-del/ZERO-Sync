@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       link_url,
       image_url,
       platforms, // Array<'instagram' | 'facebook' | 'google_business_profile'>
+      scheduled_at,
     } = body;
 
     if (!base_text) {
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '投稿先プラットフォームを1つ以上選択してください。' }, { status: 400 });
     }
 
-    // 1. DBに投稿データを下書き作成 (結果ステータスは自動で pending になる)
+    // 1. DBに投稿データを下書き作成
     const post = await DBService.createPost(
       {
         title,
@@ -36,9 +37,15 @@ export async function POST(request: NextRequest) {
         google_business_text,
         link_url,
         image_url,
+        scheduled_at,
       },
       platforms
     );
+
+    const isScheduled = scheduled_at && new Date(scheduled_at) > new Date();
+    if (isScheduled) {
+      return NextResponse.json({ success: true, postId: post.id, scheduled: true });
+    }
 
     const host = request.headers.get('host') || 'zero-sync-delta.vercel.app';
 

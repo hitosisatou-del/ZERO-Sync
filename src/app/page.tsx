@@ -10,6 +10,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
+import CronTrigger from '@/components/CronTrigger';
 
 // Next.jsのキャッシュを無効化（動的データフェッチのため）
 export const revalidate = 0;
@@ -27,11 +28,13 @@ export default async function DashboardPage() {
   let successCount = 0;
   let failedCount = 0;
   let pendingCount = 0;
+  let scheduledCount = 0;
 
   results.forEach((r) => {
     if (r.status === 'success') successCount++;
     else if (r.status === 'failed') failedCount++;
     else if (r.status === 'pending') pendingCount++;
+    else if (r.status === 'scheduled') scheduledCount++;
   });
 
   // プラットフォームアイコンの取得
@@ -63,7 +66,7 @@ export default async function DashboardPage() {
   };
 
   // ステータスバッジのスタイル取得
-  const getStatusBadge = (status: 'success' | 'failed' | 'pending') => {
+  const getStatusBadge = (status: 'success' | 'failed' | 'pending' | 'scheduled') => {
     switch (status) {
       case 'success':
         return (
@@ -86,27 +89,37 @@ export default async function DashboardPage() {
             <span>送信中</span>
           </span>
         );
+      case 'scheduled':
+        return (
+          <span className="badge" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#818cf8', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontWeight: 600 }}>
+            <Clock size={12} />
+            <span>予約中</span>
+          </span>
+        );
     }
   };
 
   return (
     <div className="animate-fade-in">
       {/* ヘッダーエリア */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
         <div>
           <h1>ダッシュボード</h1>
           <p>同時投稿の履歴および配信ステータスを管理します。</p>
         </div>
-        <Link href="/posts/new" className="btn btn-primary">
-          <Plus size={18} />
-          <span>新規投稿を作成</span>
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+          <CronTrigger />
+          <Link href="/posts/new" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', height: '42px' }}>
+            <Plus size={18} />
+            <span>新規投稿を作成</span>
+          </Link>
+        </div>
       </div>
 
       {/* メトリクスグリッド */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
         gap: '1.5rem',
         marginBottom: '2.5rem'
       }}>
@@ -121,6 +134,10 @@ export default async function DashboardPage() {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderLeft: '3px solid var(--color-failed)' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>失敗プラットフォーム数</span>
           <span style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f87171' }}>{failedCount}</span>
+        </div>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderLeft: '3px solid #818cf8' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>予約中</span>
+          <span style={{ fontSize: '2.25rem', fontWeight: 700, color: '#818cf8' }}>{scheduledCount}</span>
         </div>
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderLeft: '3px solid var(--color-pending)' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>送信待ち/処理中</span>
@@ -183,8 +200,16 @@ export default async function DashboardPage() {
 
                     {/* 投稿内容スニペット */}
                     <div style={{ flex: 1, minWidth: '280px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{formattedDate}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>作成: {formattedDate}</span>
+                          {post.scheduled_at && (
+                            <span style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(99, 102, 241, 0.05)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                              <Clock size={12} />
+                              <span>予約配信予定: {new Date(post.scheduled_at).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                            </span>
+                          )}
+                        </div>
                         {post.link_url && (
                           <a 
                             href={post.link_url} 

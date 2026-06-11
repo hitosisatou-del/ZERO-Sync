@@ -12,13 +12,14 @@ export interface Post {
   image_url: string | null;
   created_at: string;
   updated_at: string;
+  scheduled_at?: string | null;
 }
 
 export interface PostResult {
   id: string;
   post_id: string;
   platform: 'instagram' | 'facebook' | 'google_business_profile';
-  status: 'pending' | 'success' | 'failed';
+  status: 'pending' | 'success' | 'failed' | 'scheduled';
   external_post_id: string | null;
   error_message: string | null;
   created_at: string;
@@ -176,6 +177,7 @@ export class DBService {
           image_url: data.image_url || null,
           created_at: data.created_at || new Date().toISOString(),
           updated_at: data.updated_at || new Date().toISOString(),
+          scheduled_at: data.scheduled_at || null,
         });
 
         // results オブジェクトを展開してフラットな配列にマッピング
@@ -230,6 +232,7 @@ export class DBService {
         image_url: data.image_url || null,
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
+        scheduled_at: data.scheduled_at || null,
       };
 
       const results: PostResult[] = [];
@@ -263,10 +266,12 @@ export class DBService {
    * 新規投稿の作成
    */
   static async createPost(
-    postData: Omit<Post, 'id' | 'created_at' | 'updated_at'>,
+    postData: Omit<Post, 'id' | 'created_at' | 'updated_at'> & { scheduled_at?: string | null },
     platforms: Array<'instagram' | 'facebook' | 'google_business_profile'>
   ): Promise<Post> {
     const nowStr = new Date().toISOString();
+    const isScheduled = !!postData.scheduled_at;
+    const initialStatus = isScheduled ? 'scheduled' : 'pending';
 
     if (!isFirebaseConfigured() || !adminDb) {
       const newPost: Post = {
@@ -274,6 +279,7 @@ export class DBService {
         id: `post-${Date.now()}`,
         created_at: nowStr,
         updated_at: nowStr,
+        scheduled_at: postData.scheduled_at || null,
       };
       mockPosts.push(newPost);
 
@@ -282,7 +288,7 @@ export class DBService {
           id: `result-${Date.now()}-${platform}`,
           post_id: newPost.id,
           platform,
-          status: 'pending',
+          status: initialStatus,
           external_post_id: null,
           error_message: null,
           created_at: nowStr,
@@ -297,7 +303,7 @@ export class DBService {
       const resultsMap: Record<string, any> = {};
       platforms.forEach((platform) => {
         resultsMap[platform] = {
-          status: 'pending',
+          status: initialStatus,
           external_post_id: null,
           error_message: null,
           created_at: nowStr,
@@ -316,6 +322,7 @@ export class DBService {
         created_at: nowStr,
         updated_at: nowStr,
         results: resultsMap,
+        scheduled_at: postData.scheduled_at || null,
       });
 
       return {
@@ -323,6 +330,7 @@ export class DBService {
         id: docRef.id,
         created_at: nowStr,
         updated_at: nowStr,
+        scheduled_at: postData.scheduled_at || null,
       };
     } catch (e) {
       console.warn('Firestore createPost failed, falling back to mock DB:', e);
@@ -331,6 +339,7 @@ export class DBService {
         id: `post-${Date.now()}`,
         created_at: nowStr,
         updated_at: nowStr,
+        scheduled_at: postData.scheduled_at || null,
       };
       mockPosts.push(newPost);
       platforms.forEach((platform) => {
@@ -338,7 +347,7 @@ export class DBService {
           id: `result-${Date.now()}-${platform}`,
           post_id: newPost.id,
           platform,
-          status: 'pending',
+          status: initialStatus,
           external_post_id: null,
           error_message: null,
           created_at: nowStr,
