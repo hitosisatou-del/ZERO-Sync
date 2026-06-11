@@ -60,7 +60,10 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
         window.location.href = '/api/auth/meta';
         return;
       }
-      // google_business_profile は実APIクォータ制限解除の申請待ちのため、一時的にモック接続のままにします
+      if (platform === 'google_business_profile') {
+        window.location.href = '/api/auth/google';
+        return;
+      }
     }
 
     // OAuth連携のモック処理（APIへダミー連携リクエスト）
