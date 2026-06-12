@@ -63,6 +63,19 @@ let mockPosts: Post[] = [
     image_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800&auto=format&fit=crop',
     created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
     updated_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+  },
+  {
+    id: 'post-3',
+    title: '秋の交通安全キャンペーンのお知らせ',
+    base_text: '【秋の交通安全キャンペーンのお知らせ】\n来週より秋の全国交通安全運動が始まります。都城ドライビングスクールでは、地域の皆様とともに交通安全意識を高めるための特別講習会を実施いたします。安全な運転は正しい知識とマナーから。皆様のご参加をお待ちしております！',
+    instagram_text: '【秋の全国交通安全運動スタート！】🍂🚘\n来週より交通安全キャンペーンが始まります。都城ドライビングスクールでは特別講習会を実施します！安全マナーを再確認して、事故ゼロを目指しましょう。✨\n\n#都城 #教習所 #都城ドライビングスクール #交通安全 #安全運転 #秋の全国交通安全運動 #宮崎',
+    facebook_text: '【秋の交通安全キャンペーンのお知らせ】\n来週より秋の全国交通安全運動が始まります。\n都城ドライビングスクールでは、地域の皆様とともに交通安全意識を高めるための特別講習会を実施いたします。\n安全な運転は正しい知識とマナーから。ご参加お待ちしております。\n\n▼ イベント詳細・ご予約はこちら\nhttps://example.com/safety-campaign',
+    google_business_text: '【都城ドライビングスクール】秋の交通安全キャンペーン実施のお知らせ。安全意識向上のため、特別講習会を開催します。どなたでもご参加いただけます。安全第一で秋を過ごしましょう！',
+    link_url: 'https://example.com/safety-campaign',
+    image_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    scheduled_at: new Date(Date.now() + 3600000 * 26).toISOString(),
   }
 ];
 
@@ -116,6 +129,26 @@ let mockPostResults: PostResult[] = [
     error_message: null,
     created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
     updated_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+  },
+  {
+    id: 'result-6',
+    post_id: 'post-3',
+    platform: 'instagram',
+    status: 'scheduled',
+    external_post_id: null,
+    error_message: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'result-7',
+    post_id: 'post-3',
+    platform: 'facebook',
+    status: 'scheduled',
+    external_post_id: null,
+    error_message: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   }
 ];
 
