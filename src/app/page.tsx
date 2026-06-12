@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
 import CronTrigger from '@/components/CronTrigger';
+import PublishNowButton from '@/components/PublishNowButton';
 
 // Next.jsのキャッシュを無効化（動的データフェッチのため）
 export const revalidate = 0;
@@ -338,8 +339,9 @@ export default async function DashboardPage() {
                       )}
 
                       {timeInfo?.isPast && (
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4', background: 'rgba(239, 68, 68, 0.03)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
-                          ※配信予定時刻を過ぎていますが、自動実行（毎日9:00 JST）が未実行のため保留されています。右上の「予約投稿を即時処理」をクリックして今すぐ配信することも可能です。
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4', background: 'rgba(239, 68, 68, 0.03)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239, 68, 68, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem' }}>
+                          <span>※配信予定時刻を過ぎていますが、自動実行（毎日9:00 JST）が未実行のため保留されています。今すぐ配信する場合は、下記のボタンをクリックしてください。</span>
+                          <PublishNowButton />
                         </div>
                       )}
                       
