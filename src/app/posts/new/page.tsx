@@ -92,11 +92,37 @@ export default function NewPostPage() {
         }
 
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        
+        // Instagramの許容アスペクト比 (0.8 〜 1.91)
+        const MIN_RATIO = 0.8;   // 4:5
+        const MAX_RATIO = 1.91;  // 1.91:1
+        const currentRatio = width / height;
+
+        let canvasWidth = width;
+        let canvasHeight = height;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (currentRatio > MAX_RATIO) {
+          // 極端に横長の場合：縦に余白（白）を追加してアスペクト比を1.91にする
+          canvasHeight = Math.round(width / MAX_RATIO);
+          offsetY = Math.round((canvasHeight - height) / 2);
+        } else if (currentRatio < MIN_RATIO) {
+          // 極端に縦長の場合：横に余白（白）を追加してアスペクト比を0.8にする
+          canvasWidth = Math.round(height * MIN_RATIO);
+          offsetX = Math.round((canvasWidth - width) / 2);
+        }
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
+          // 背景を白で塗りつぶす
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+          
+          // 元の画像を中央に描画
+          ctx.drawImage(img, offsetX, offsetY, width, height);
           
           // 画質80%のJPEG形式に圧縮してBase64化（Firestoreの1MB制限を回避するため）
           const base64String = canvas.toDataURL('image/jpeg', 0.8);
