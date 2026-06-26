@@ -9,7 +9,8 @@ import {
   PlusCircle, 
   Settings, 
   LogOut, 
-  Layers 
+  Layers,
+  ShieldAlert
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -48,8 +49,35 @@ const themes: { id: Theme; label: string; gradient: string; accentColor: string 
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const isLoginPage = pathname === '/login';
 
   const [theme, setTheme] = useState<Theme>('midnight-cosmic');
+  const [userRole, setUserRole] = useState<'admin' | 'editor' | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUserRole(data.role);
+          setUserEmail(data.email);
+        }
+      } catch (e) {
+        console.error('Error fetching user info:', e);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    if (!isLoginPage) {
+      fetchUser();
+    } else {
+      setIsAuthLoading(false);
+    }
+  }, [isLoginPage]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('zero-theme') as Theme;
@@ -64,8 +92,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     localStorage.setItem('zero-theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
-
-  const isLoginPage = pathname === '/login';
 
   const handleLogout = async () => {
     try {
@@ -106,11 +132,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
       path: '/posts/new',
       icon: PlusCircle,
     },
-    {
+    // 管理者のみ表示
+    ...(userRole === 'admin' ? [{
       name: 'アカウント連携',
       path: '/settings/accounts',
       icon: Settings,
-    },
+    }] : []),
   ];
 
   return (
@@ -224,6 +251,33 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
           </div>
 
+          {/* ユーザー情報表示 */}
+          {userEmail && (
+            <div style={{ 
+              background: 'rgba(255,255,255,0.02)', 
+              border: '1px solid var(--border-color)',
+              padding: '0.75rem', 
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.8rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.25rem'
+            }}>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>ログイン中:</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600, wordBreak: 'break-all' }}>{userEmail}</span>
+              <span style={{ 
+                color: userRole === 'admin' ? 'var(--accent-primary)' : '#fbbf24', 
+                fontWeight: 700,
+                marginTop: '0.25rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.25rem'
+              }}>
+                ● {userRole === 'admin' ? '管理者権限' : '投稿担当者'}
+              </span>
+            </div>
+          )}
+
           <button
             onClick={handleLogout}
             className="btn btn-secondary"
@@ -245,7 +299,40 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       {/* メインコンテンツ */}
       <main className="main-content">
-        {children}
+        {!isAuthLoading && userRole === 'editor' && pathname.startsWith('/settings') ? (
+          <div className="animate-fade-in" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
+            textAlign: 'center',
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: '50%',
+              padding: '1.5rem',
+              color: '#f87171',
+              marginBottom: '1.5rem',
+              boxShadow: '0 0 20px rgba(239, 68, 68, 0.1)'
+            }}>
+              <ShieldAlert size={48} />
+            </div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
+              アクセス権限がありません
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '460px', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: 1.5 }}>
+              このページ（連携設定）は管理者専用です。お使いのアカウント（{userEmail}）は「投稿担当者」のため、アクセスが制限されています。
+            </p>
+            <Link href="/" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>
+              ダッシュボードに戻る
+            </Link>
+          </div>
+        ) : (
+          children
+        )}
       </main>
 
       <style jsx global>{`

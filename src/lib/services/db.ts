@@ -177,6 +177,11 @@ let mockConnectedAccounts: ConnectedAccount[] = [
   }
 ];
 
+let mockUserRoles: Array<{ email: string; role: 'admin' | 'editor' }> = [
+  { email: 'hitosi.satou@gmail.com', role: 'admin' },
+  { email: 'editor@example.com', role: 'editor' }
+];
+
 // DBアクセスクラス (Firestore ＆ MockDB ハイブリッド)
 export class DBService {
   /**
@@ -651,6 +656,117 @@ export class DBService {
       const deletedResults = mockPostResults.filter((r) => r.post_id === id);
       mockPostResults = mockPostResults.filter((r) => r.post_id !== id);
       return { success: true, post: deletedPost, results: deletedResults };
+    }
+  }
+
+  /**
+   * 特定のメールアドレスのロールを取得
+   */
+  static async getUserRole(email: string): Promise<'admin' | 'editor'> {
+    if (!email) return 'editor';
+    
+    // オーナーメールアドレスは常に管理者
+    const ownerEmail = 'hitosi.satou@gmail.com';
+    if (email.toLowerCase() === ownerEmail.toLowerCase()) {
+      return 'admin';
+    }
+
+    if (!isFirebaseConfigured() || !adminDb) {
+      const found = mockUserRoles.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (found) return found.role;
+      if (email.includes('editor')) return 'editor';
+      return 'admin';
+    }
+
+    try {
+      const doc = await adminDb.collection('user_roles').doc(email.toLowerCase()).get();
+      if (doc.exists) {
+        return doc.data()!.role || 'editor';
+      }
+      return 'editor'; // デフォルトは権限の低い editor にする
+    } catch (e) {
+      console.warn('Firestore getUserRole failed, falling back:', e);
+      return 'editor';
+    }
+  }
+
+  /**
+   * 登録されている全ユーザーのロール一覧を取得 (管理者用)
+   */
+  static async getAllUserRoles(): Promise<Array<{ email: string; role: 'admin' | 'editor' }>> {
+    const ownerEmail = 'hitosi.satou@gmail.com';
+    const defaultList = [{ email: ownerEmail, role: 'admin' as const }];
+
+    if (!isFirebaseConfigured() || !adminDb) {
+      return [...mockUserRoles];
+    }
+
+    try {
+      const snapshot = await adminDb.collection('user_roles').get();
+      const list: Array<{ email: string; role: 'admin' | 'editor' }> = [...defaultList];
+      
+      snapshot.forEach((doc) => {
+        if (doc.id.toLowerCase() !== ownerEmail.toLowerCase()) {
+          list.push({
+            email: doc.id,
+            role: doc.data().role || 'editor',
+          });
+        }
+      });
+      return list;
+    } catch (e) {
+      console.warn('Firestore getAllUserRoles failed:', e);
+      return defaultList;
+    }
+  }
+
+  /**
+   * ユーザーロールの保存/更新
+   */
+  static async saveUserRole(email: string, role: 'admin' | 'editor'): Promise<void> {
+    const ownerEmail = 'hitosi.satou@gmail.com';
+    if (email.toLowerCase() === ownerEmail.toLowerCase()) {
+      throw new Error('オーナー管理者の権限は変更できません。');
+    }
+
+    if (!isFirebaseConfigured() || !adminDb) {
+      const index = mockUserRoles.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (index !== -1) {
+        mockUserRoles[index].role = role;
+      } else {
+        mockUserRoles.push({ email: email.toLowerCase(), role });
+      }
+      return;
+    }
+
+    try {
+      const docRef = adminDb.collection('user_roles').doc(email.toLowerCase());
+      await docRef.set({ role, updated_at: new Date().toISOString() });
+    } catch (e) {
+      console.warn('Firestore saveUserRole failed:', e);
+      throw e;
+    }
+  }
+
+  /**
+   * ユーザーロールの削除
+   */
+  static async deleteUserRole(email: string): Promise<void> {
+    const ownerEmail = 'hitosi.satou@gmail.com';
+    if (email.toLowerCase() === ownerEmail.toLowerCase()) {
+      throw new Error('オーナー管理者は削除できません。');
+    }
+
+    if (!isFirebaseConfigured() || !adminDb) {
+      mockUserRoles = mockUserRoles.filter((u) => u.email.toLowerCase() !== email.toLowerCase());
+      return;
+    }
+
+    try {
+      await adminDb.collection('user_roles').doc(email.toLowerCase()).delete();
+    } catch (e) {
+      console.warn('Firestore deleteUserRole failed:', e);
+      throw e;
     }
   }
 }

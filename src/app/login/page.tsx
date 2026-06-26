@@ -32,7 +32,7 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (testEmail?: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
           const res = await fetch('/api/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken: null }),
+            body: JSON.stringify({ idToken: null, email: testEmail || 'hitosi.satou@gmail.com' }),
           });
           
           if (res.ok) {
@@ -165,10 +165,10 @@ export default function LoginPage() {
         )}
 
         {/* ログインボタンエリア */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <button
             type="button"
-            onClick={handleGoogleLogin}
+            onClick={() => handleGoogleLogin()}
             disabled={isLoading}
             className="btn btn-secondary google-btn"
             style={{
@@ -192,6 +192,44 @@ export default function LoginPage() {
             <GoogleIcon />
             <span>{isLoading ? 'サインイン中...' : 'Googleアカウントでログイン'}</span>
           </button>
+
+          {/* モック開発用クイックログイン */}
+          {(typeof window !== 'undefined' && 
+            (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
+             process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('dummy'))) && (
+            <div style={{ 
+              marginTop: '1rem', 
+              padding: '1rem', 
+              background: 'rgba(255,255,255,0.02)', 
+              borderRadius: 'var(--radius-md)',
+              border: '1px dashed var(--border-color)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem'
+            }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 600 }}>
+                開発用テストアカウント（モック）
+              </div>
+              <button
+                type="button"
+                onClick={() => handleGoogleLogin('hitosi.satou@gmail.com')}
+                disabled={isLoading}
+                className="btn btn-primary"
+                style={{ width: '100%', fontSize: '0.85rem', padding: '0.5rem 0.75rem' }}
+              >
+                管理者としてログイン
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGoogleLogin('test-editor@example.com')}
+                disabled={isLoading}
+                className="btn btn-secondary"
+                style={{ width: '100%', fontSize: '0.85rem', padding: '0.5rem 0.75rem' }}
+              >
+                投稿担当者（制限付き）としてログイン
+              </button>
+            </div>
+          )}
         </div>
 
         <div style={{ marginTop: '2.5rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>

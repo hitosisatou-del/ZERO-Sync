@@ -4,12 +4,12 @@ import { adminAuth, isFirebaseConfigured } from '@/lib/firebase/admin';
 
 export async function POST(request: NextRequest) {
   try {
-    const { idToken } = await request.json();
+    const { idToken, email } = await request.json();
     const cookieStore = await cookies();
 
     // 1. Firebaseが未設定（モックモード）の場合
     if (!isFirebaseConfigured() || !adminAuth) {
-      // 擬似的なログイン完了として、ダミーセッションクッキーをセット
+      // 擬似的なログイン完了として、ダミーセッションクッキーとダミーメールをセット
       cookieStore.set('sb-dummy-session', 'true', {
         path: '/',
         httpOnly: false, // クライアントからも見えるように
@@ -17,6 +17,16 @@ export async function POST(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
       });
+      
+      const targetEmail = email || 'hitosi.satou@gmail.com';
+      cookieStore.set('dummy-email', targetEmail, {
+        path: '/',
+        httpOnly: false,
+        maxAge: 3600 * 24 * 5,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+
       return NextResponse.json({ success: true, isMock: true });
     }
 
