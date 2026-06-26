@@ -9,7 +9,8 @@ import {
   X, 
   Eye, 
   FileText,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
 
@@ -887,19 +888,71 @@ export default function NewPostPage() {
               type="submit"
               className="btn btn-primary"
               disabled={isLoading}
-              style={{ flex: 2 }}
+              style={{ flex: 2, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
-              <Send size={16} />
+              {isLoading ? (
+                <Loader2 size={16} className="spin-animation-fast" />
+              ) : (
+                <Send size={16} />
+              )}
               <span>{isLoading ? '同時投稿処理中...' : '同時投稿を実行'}</span>
             </button>
           </div>
         </div>
       </form>
 
+      {/* 全画面ローディングオーバーレイ */}
+      {isLoading && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(9, 10, 15, 0.8)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1.25rem',
+          color: '#fff'
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            padding: '2.5rem',
+            borderRadius: 'var(--radius-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+            maxWidth: '90%',
+            width: '400px',
+            textAlign: 'center'
+          }}>
+            <Loader2 size={40} className="spin-animation-fast" style={{ color: 'var(--accent-primary)' }} />
+            <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>各SNSへ同時投稿を送信中...</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              API接続と配信処理を行っています。<br />そのまましばらくお待ちください。
+            </span>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .image-dropzone:hover {
           border-color: var(--accent-primary) !important;
           background-color: rgba(99, 102, 241, 0.03) !important;
+        }
+        @keyframes spinFast {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .spin-animation-fast {
+          animation: spinFast 0.8s linear infinite;
         }
       `}</style>
     </div>

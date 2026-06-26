@@ -10,7 +10,8 @@ import {
   Clock, 
   RotateCw,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
 import { Post, PostResult } from '@/lib/services/db';
@@ -417,15 +418,59 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
             </p>
             <button
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={isDeleting || retryingPlatform !== null}
               className="btn btn-danger"
-              style={{ width: '100%', padding: '0.65rem 1rem', fontSize: '0.9rem' }}
+              style={{ width: '100%', padding: '0.65rem 1rem', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
-              {isDeleting ? '削除処理中...' : 'この投稿を削除する'}
+              {isDeleting ? (
+                <Loader2 size={16} className="spin-animation-fast" />
+              ) : null}
+              <span>{isDeleting ? '削除処理中...' : 'この投稿を削除する'}</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* 削除中ローディングオーバーレイ */}
+      {isDeleting && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(9, 10, 15, 0.8)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1.25rem',
+          color: '#fff'
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            padding: '2.5rem',
+            borderRadius: 'var(--radius-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+            maxWidth: '90%',
+            width: '400px',
+            textAlign: 'center'
+          }}>
+            <Loader2 size={40} className="spin-animation-fast" style={{ color: 'var(--color-failed)' }} />
+            <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>投稿を削除中...</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              管理履歴および各SNSの投稿を連動削除しています。<br />そのまましばらくお待ちください。
+            </span>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .back-link:hover {
@@ -437,6 +482,13 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
         }
         .spin-animation {
           animation: spin 1s linear infinite;
+        }
+        @keyframes spinFast {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .spin-animation-fast {
+          animation: spinFast 0.8s linear infinite;
         }
       `}</style>
     </div>
