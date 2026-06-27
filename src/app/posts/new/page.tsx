@@ -30,7 +30,7 @@ export default function NewPostPage() {
   const [platforms, setPlatforms] = useState({
     instagram: true,
     facebook: true,
-    google_business_profile: false,
+    google_business_profile: true,
   });
 
   // 個別本文
