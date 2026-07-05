@@ -22,6 +22,22 @@ export async function GET() {
         googleAccount.external_account_id || undefined
       );
 
+      // 取得した統計データの合計閲覧数が0件の場合、Google側でまだ同期が始まっていないか、
+      // 過去30日間に活動データがないため、見栄えを損なわないようデモデータへ自動フォールバックします。
+      const totalViews = performanceData.dailyData.reduce((sum: number, d: any) => sum + (d.viewsSearch || 0) + (d.viewsMaps || 0), 0);
+      
+      if (totalViews === 0) {
+        console.warn('Real Google performance returned 0 views, falling back to mock.');
+        const dummyToken = 'encrypted_dummy_token'; // モック作成を強制
+        const demoData = await getGoogleBusinessPerformance(dummyToken);
+        return NextResponse.json({
+          isConnected: true,
+          isDemo: true,
+          errorDetail: 'Googleアカウントからの実データ（閲覧インプレッション数等）の同期がまだ開始されていないか、過去30日間の統計数値が0です。',
+          ...demoData
+        });
+      }
+
       return NextResponse.json({
         isConnected: true,
         isDemo: googleAccount.access_token.includes('dummy'),

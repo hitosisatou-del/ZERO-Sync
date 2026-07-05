@@ -419,8 +419,9 @@ export async function getGoogleBusinessPerformance(
 
     // 3. パフォーマンス指標の取得
     const now = new Date();
-    const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const endDate = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+    // Googleインサイトの反映ディレイ（3〜4日程度）を考慮し、3日前から33日前までの30日間を取得します
+    const endDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const startDate = new Date(now.getTime() - 33 * 24 * 60 * 60 * 1000);
 
     const startYear = startDate.getFullYear();
     const startMonth = startDate.getMonth() + 1;
@@ -437,7 +438,7 @@ export async function getGoogleBusinessPerformance(
       'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
       'WEBSITE_CLICKS',
       'CALL_CLICKS',
-      'DIRECTIONS_CLICKS'
+      'BUSINESS_DIRECTION_REQUESTS'
     ];
 
     const queryParams = new URLSearchParams();
@@ -498,7 +499,7 @@ export async function getGoogleBusinessPerformance(
                     dailyMap[dateStr].clicksWebsite += numVal;
                   } else if (metricName === 'CALL_CLICKS') {
                     dailyMap[dateStr].clicksCall += numVal;
-                  } else if (metricName === 'DIRECTIONS_CLICKS') {
+                  } else if (metricName === 'BUSINESS_DIRECTION_REQUESTS') {
                     dailyMap[dateStr].clicksDirections += numVal;
                   }
                 }
