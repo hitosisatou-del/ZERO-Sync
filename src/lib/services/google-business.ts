@@ -440,28 +440,21 @@ export async function getGoogleBusinessPerformance(
       'DIRECTIONS_CLICKS'
     ];
 
-    const perfUrl = `https://businessprofileperformance.googleapis.com/v1/${targetLocationId}/performanceReport:fetchMultiDailyMetrics`;
+    const queryParams = new URLSearchParams();
+    metricParams.forEach(m => queryParams.append('dailyMetrics', m));
+    queryParams.append('dailyRange.start_date.year', startYear.toString());
+    queryParams.append('dailyRange.start_date.month', startMonth.toString());
+    queryParams.append('dailyRange.start_date.day', startDay.toString());
+    queryParams.append('dailyRange.end_date.year', endYear.toString());
+    queryParams.append('dailyRange.end_date.month', endMonth.toString());
+    queryParams.append('dailyRange.end_date.day', endDay.toString());
+
+    const perfUrl = `https://businessprofileperformance.googleapis.com/v1/${targetLocationId}:fetchMultiDailyMetricsTimeSeries?${queryParams.toString()}`;
     const perfResponse = await fetch(perfUrl, {
-      method: 'POST',
+      method: 'GET',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        dailyMetrics: metricParams,
-        dailyRange: {
-          startDate: {
-            year: startYear,
-            month: startMonth,
-            day: startDay
-          },
-          endDate: {
-            year: endYear,
-            month: endMonth,
-            day: endDay
-          }
-        }
-      })
+        Authorization: `Bearer ${accessToken}`
+      }
     });
 
     const perfData = await safeJson(perfResponse, 'パフォーマンス指標の取得に失敗しました。');
@@ -483,29 +476,33 @@ export async function getGoogleBusinessPerformance(
     };
     initializeDateMap();
 
-    if (perfResponse.ok && perfData.multiDailyMetricValues) {
-      perfData.multiDailyMetricValues.forEach((metricVal: any) => {
-        const metricName = metricVal.dailyMetric;
-        if (metricVal.dailyMetricValues) {
-          metricVal.dailyMetricValues.forEach((val: any) => {
-            const dateObj = val.date;
-            if (!dateObj) return;
-            const dateStr = `${dateObj.year}-${String(dateObj.month).padStart(2, '0')}-${String(dateObj.day).padStart(2, '0')}`;
-            
-            if (dailyMap[dateStr]) {
-              const numVal = parseInt(val.value || '0', 10);
-              
-              if (metricName === 'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH' || metricName === 'BUSINESS_IMPRESSIONS_MOBILE_SEARCH') {
-                dailyMap[dateStr].viewsSearch += numVal;
-              } else if (metricName === 'BUSINESS_IMPRESSIONS_DESKTOP_MAPS' || metricName === 'BUSINESS_IMPRESSIONS_MOBILE_MAPS') {
-                dailyMap[dateStr].viewsMaps += numVal;
-              } else if (metricName === 'WEBSITE_CLICKS') {
-                dailyMap[dateStr].clicksWebsite += numVal;
-              } else if (metricName === 'CALL_CLICKS') {
-                dailyMap[dateStr].clicksCall += numVal;
-              } else if (metricName === 'DIRECTIONS_CLICKS') {
-                dailyMap[dateStr].clicksDirections += numVal;
-              }
+    if (perfResponse.ok && perfData.multiDailyMetricTimeSeries) {
+      perfData.multiDailyMetricTimeSeries.forEach((multiTimeSeries: any) => {
+        if (multiTimeSeries.dailyMetricTimeSeries) {
+          multiTimeSeries.dailyMetricTimeSeries.forEach((metricVal: any) => {
+            const metricName = metricVal.dailyMetric;
+            if (metricVal.timeSeries && metricVal.timeSeries.datedValues) {
+              metricVal.timeSeries.datedValues.forEach((val: any) => {
+                const dateObj = val.date;
+                if (!dateObj) return;
+                const dateStr = `${dateObj.year}-${String(dateObj.month).padStart(2, '0')}-${String(dateObj.day).padStart(2, '0')}`;
+                
+                if (dailyMap[dateStr]) {
+                  const numVal = parseInt(val.value || '0', 10);
+                  
+                  if (metricName === 'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH' || metricName === 'BUSINESS_IMPRESSIONS_MOBILE_SEARCH') {
+                    dailyMap[dateStr].viewsSearch += numVal;
+                  } else if (metricName === 'BUSINESS_IMPRESSIONS_DESKTOP_MAPS' || metricName === 'BUSINESS_IMPRESSIONS_MOBILE_MAPS') {
+                    dailyMap[dateStr].viewsMaps += numVal;
+                  } else if (metricName === 'WEBSITE_CLICKS') {
+                    dailyMap[dateStr].clicksWebsite += numVal;
+                  } else if (metricName === 'CALL_CLICKS') {
+                    dailyMap[dateStr].clicksCall += numVal;
+                  } else if (metricName === 'DIRECTIONS_CLICKS') {
+                    dailyMap[dateStr].clicksDirections += numVal;
+                  }
+                }
+              });
             }
           });
         }
