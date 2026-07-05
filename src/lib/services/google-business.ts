@@ -310,7 +310,7 @@ export async function getGoogleBusinessPerformance(
   try {
     decryptedToken = decrypt(accessTokenEncrypted);
   } catch (e) {
-    throw new Error('アクセス権限の復号化に失敗しました。');
+    throw new Error('連携データの復号（暗号解除）に失敗しました。暗号化キーが更新された可能性があります。アカウント設定画面からGoogleアカウントの「再連携する」ボタンをクリックして再接続してください。');
   }
 
   const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
