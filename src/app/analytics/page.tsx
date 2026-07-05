@@ -87,6 +87,35 @@ export default function AnalyticsPage() {
     );
   }
 
+  // エラー時の表示
+  if (error) {
+    return (
+      <div className="animate-fade-in" style={{ maxWidth: '800px', margin: '2rem auto' }}>
+        <div className="card" style={{ padding: '2.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', border: '1px solid #ef4444' }}>
+          <div style={{ background: 'rgba(239, 68, 68, 0.05)', borderRadius: '50%', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AlertTriangle size={48} style={{ color: '#ef4444' }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: '#ef4444' }}>集客分析データの取得エラー</h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto' }}>
+              データ取得中に以下のエラーが発生しました。設定情報や権限をご確認ください。
+            </p>
+            <p style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', marginTop: '1rem', fontFamily: 'monospace' }}>
+              {error}
+            </p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="btn btn-primary"
+            style={{ padding: '0.75rem 1.5rem' }}
+          >
+            画面を再読み込みする
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // 未連携時のクリーンな誘導画面
   if (!isConnected) {
     return (
