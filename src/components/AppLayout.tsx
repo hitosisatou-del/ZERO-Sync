@@ -12,7 +12,8 @@ import {
   Layers,
   ShieldAlert,
   Menu,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -139,6 +140,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
       name: '新規投稿作成',
       path: '/posts/new',
       icon: PlusCircle,
+    },
+    {
+      name: '集客分析レポート',
+      path: '/analytics',
+      icon: BarChart3,
     },
     // 管理者のみ表示
     ...(userRole === 'admin' ? [{
