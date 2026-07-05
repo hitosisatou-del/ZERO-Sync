@@ -34,30 +34,49 @@ export function encrypt(text: string): string {
  * @param encryptedText 暗号化されたテキスト (iv:ciphertext 形式)
  */
 export function decrypt(encryptedText: string): string {
-  try {
-    const parts = encryptedText.split(':');
-    if (parts.length !== 2) {
-      throw new Error('Invalid encrypted text format');
-    }
-
-    const iv = Buffer.from(parts[0], 'hex');
-    const encrypted = parts[1];
-
-    let key = Buffer.from(ENCRYPTION_KEY, 'utf-8');
-    if (key.length !== 32) {
-      const hash = crypto.createHash('sha256');
-      hash.update(ENCRYPTION_KEY);
-      key = hash.digest();
-    }
-
-    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-    
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
-  } catch (error) {
-    console.error('Decryption failed:', error);
-    throw new Error('Failed to decrypt data');
+  // 暗号化されていないプレーンテキストの場合はそのまま返す（過去のデータや未暗号化のトークンとの互換性のため）
+  if (!encryptedText || !encryptedText.includes(':')) {
+    return encryptedText;
   }
+
+  const keysToTry = [
+    process.env.ENCRYPTION_KEY,
+    'default-key-must-be-32-characters-long!',
+    'abcdef0123456789abcdef0123456789'
+  ].filter(Boolean) as string[];
+
+  // 重複を排除
+  const uniqueKeys = Array.from(new Set(keysToTry));
+
+  for (const keyStr of uniqueKeys) {
+    try {
+      const parts = encryptedText.split(':');
+      if (parts.length !== 2) {
+        continue;
+      }
+
+      const iv = Buffer.from(parts[0], 'hex');
+      const encrypted = parts[1];
+
+      let key = Buffer.from(keyStr, 'utf-8');
+      if (key.length !== 32) {
+        const hash = crypto.createHash('sha256');
+        hash.update(keyStr);
+        key = hash.digest();
+      }
+
+      const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+      
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+      
+      return decrypted; // 復号に成功したら即座に返す
+    } catch (e) {
+      // このキーでの復号失敗は無視して次のキーを試す
+    }
+  }
+
+  // すべてのキーで失敗した場合
+  console.error('Decryption failed for all attempted keys');
+  throw new Error('Failed to decrypt data');
 }
