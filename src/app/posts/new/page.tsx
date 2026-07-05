@@ -246,12 +246,7 @@ export default function NewPostPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '2rem',
-        alignItems: 'start'
-      }}>
+      <form onSubmit={handleSubmit} className="responsive-form-grid">
         {/* 左カラム: 入力フォーム */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div className="card">
@@ -522,7 +517,7 @@ export default function NewPostPage() {
         </div>
 
         {/* 右カラム: 個別調整 ＆ プレビュー */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '2.5rem' }}>
+        <div className="responsive-preview-column">
           <div className="card" style={{ padding: '1rem' }}>
             <div style={{
               display: 'flex',

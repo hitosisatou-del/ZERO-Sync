@@ -454,3 +454,92 @@ p {
 .platform-google_business_profile {
   color: var(--color-google);
 }
+
+/* ==========================================================================
+   Mobile Responsive Layout (iPhone & Tablet)
+   ========================================================================== */
+
+/* スマホ用の固定ヘッダー */
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 100;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
+
+/* メニュー用オーバーレイ背景 */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+}
+
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+  }
+  
+  .sidebar-overlay.show {
+    display: block;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    z-index: 101;
+    width: 260px;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+    padding: 1.25rem !important;
+    padding-top: calc(56px + 1.25rem) !important;
+  }
+}
+
+/* レスポンシブ入力フォーム用のグリッド */
+.responsive-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.responsive-preview-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 2.5rem;
+}
+
+@media (max-width: 992px) {
+  .responsive-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .responsive-preview-column {
+    position: static;
+  }
+}
+

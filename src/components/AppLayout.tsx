@@ -10,7 +10,9 @@ import {
   Settings, 
   LogOut, 
   Layers,
-  ShieldAlert
+  ShieldAlert,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -55,6 +57,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [userRole, setUserRole] = useState<'admin' | 'editor' | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // ページ遷移（ルート変更）時にモバイルメニューを自動で閉じる
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -142,8 +150,39 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="app-container">
+      {/* モバイル用固定ヘッダー */}
+      <header className="mobile-header">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            padding: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          aria-label="メニュー切り替え"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Layers size={18} style={{ color: 'var(--accent-primary)' }} />
+          <span style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.01em' }}>ZERO Sync</span>
+        </div>
+        <div style={{ width: '36px' }}></div> {/* バランス用の空要素 */}
+      </header>
+
+      {/* モバイルメニュー用オーバーレイ */}
+      <div 
+        className={`sidebar-overlay ${isMobileMenuOpen ? 'show' : ''}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
       {/* サイドバー */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem' }}>
           <div style={{
             background: 'var(--accent-gradient)',
