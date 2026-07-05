@@ -10,9 +10,11 @@ import {
   Eye, 
   FileText,
   AlertCircle,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
+import AIPostModal from '@/components/AIPostModal';
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -49,6 +51,9 @@ export default function NewPostPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // AI生成モーダルの開閉状態
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   // 共通本文が変更されたときに個別本文を同期 (編集されていない場合のみ)
   useEffect(() => {
@@ -268,7 +273,27 @@ export default function NewPostPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="baseText">共通本文</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <label className="form-label" htmlFor="baseText" style={{ margin: 0 }}>共通本文</label>
+                <button
+                  type="button"
+                  onClick={() => setIsAiModalOpen(true)}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: '0.25rem 0.65rem',
+                    fontSize: '0.75rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    borderColor: 'var(--accent-primary)',
+                    color: '#fff',
+                    background: 'rgba(99, 102, 241, 0.08)'
+                  }}
+                >
+                  <Sparkles size={12} style={{ color: 'var(--accent-primary)' }} />
+                  <span>AIで本文を自動生成</span>
+                </button>
+              </div>
               <textarea
                 id="baseText"
                 value={baseText}
@@ -930,6 +955,17 @@ export default function NewPostPage() {
           </div>
         </div>
       )}
+
+      <AIPostModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        onApply={(text) => {
+          setBaseText(text);
+          setIsIgEdited(false);
+          setIsFbEdited(false);
+          setIsGbpEdited(false);
+        }}
+      />
 
       <style jsx>{`
         .image-dropzone:hover {
