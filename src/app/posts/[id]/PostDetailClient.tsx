@@ -11,7 +11,8 @@ import {
   RotateCw,
   AlertTriangle,
   ExternalLink,
-  Loader2
+  Loader2,
+  Link2
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
 import { Post, PostResult } from '@/lib/services/db';
@@ -23,6 +24,21 @@ interface PostDetailClientProps {
 
 export default function PostDetailClient({ post, initialResults }: PostDetailClientProps) {
   const router = useRouter();
+  const checkIsTokenError = (msg?: string | null) => {
+    if (!msg) return false;
+    const lower = msg.toLowerCase();
+    return (
+      lower.includes('expired or revoked') ||
+      lower.includes('expiration has passed') ||
+      lower.includes('invalid oauth access token') ||
+      lower.includes('code: 190') ||
+      lower.includes('期限切れ') ||
+      lower.includes('再連携') ||
+      lower.includes('連携アカウント情報が見つかりません') ||
+      lower.includes('アクセス権限の復号化に失敗') ||
+      lower.includes('無効である可能性があります')
+    );
+  };
   const [results, setResults] = useState<PostResult[]>(initialResults);
   const [retryingPlatform, setRetryingPlatform] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -381,21 +397,71 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                       </div>
                     )}
 
+                    {isFailed && checkIsTokenError(result.error_message) && (
+                      <div style={{
+                        padding: '0.75rem',
+                        borderRadius: 'var(--radius-sm)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                        border: '1px solid rgba(245, 158, 11, 0.15)',
+                        color: '#fcd34d',
+                        fontSize: '0.85rem',
+                        lineHeight: '1.45',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem'
+                      }}>
+                        <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                          <span>アカウントの再連携が必要です</span>
+                        </div>
+                        <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+                          認証セッションの有効期限が切れているか、連携が取り消されています。再送信する前に「アカウント連携設定」からアカウントの再連携を行ってください。
+                        </p>
+                        <Link 
+                          href="/settings/accounts" 
+                          className="btn btn-secondary"
+                          style={{ 
+                            width: '100%', 
+                            padding: '0.4rem 0.75rem', 
+                            fontSize: '0.8rem', 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            gap: '0.35rem',
+                            borderColor: 'rgba(245, 158, 11, 0.3)',
+                            color: '#fcd34d',
+                            backgroundColor: 'rgba(245, 158, 11, 0.02)'
+                          }}
+                        >
+                          <Link2 size={12} />
+                          <span>アカウント連携設定へ移動</span>
+                        </Link>
+                      </div>
+                    )}
+
                     {/* 下部: 再投稿ボタン (失敗している場合のみ表示) */}
                     {isFailed && (
                       <button
                         onClick={() => handleRetry(result.platform)}
                         disabled={retryingPlatform !== null}
-                        className="btn btn-danger"
+                        className={checkIsTokenError(result.error_message) ? "btn btn-secondary" : "btn btn-danger"}
                         style={{ 
                           width: '100%', 
                           padding: '0.5rem 1rem', 
                           fontSize: '0.85rem',
-                          gap: '0.35rem'
+                          gap: '0.35rem',
+                          marginTop: checkIsTokenError(result.error_message) ? '0.5rem' : '0'
                         }}
                       >
                         <RotateCw size={14} className={retryingPlatform === result.platform ? 'spin-animation' : ''} />
-                        <span>{retryingPlatform === result.platform ? '再送信中...' : 'この媒体へ再投稿する'}</span>
+                        <span>
+                          {retryingPlatform === result.platform 
+                            ? '再送信中...' 
+                            : checkIsTokenError(result.error_message)
+                              ? '連携完了後に再送信を実行'
+                              : 'この媒体へ再投稿する'
+                          }
+                        </span>
                       </button>
                     )}
                   </div>

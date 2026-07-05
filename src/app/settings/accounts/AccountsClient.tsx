@@ -330,32 +330,36 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
           {(() => {
             const account = getAccountByPlatform('instagram');
             const isConnected = !!account;
+            const isExpired = isConnected && account.token_expires_at 
+              ? new Date(account.token_expires_at).getTime() < Date.now() 
+              : false;
+            const isInvalid = isConnected && (account.is_invalid || isExpired);
             
             return (
               <div className="card" style={{
-                borderLeft: '4px solid ' + (isConnected ? 'var(--color-instagram)' : 'var(--border-color)'),
+                borderLeft: '4px solid ' + (isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.8)' : 'var(--color-instagram)') : 'var(--border-color)'),
                 padding: '1.75rem'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flex: 1, minWidth: '280px' }}>
                     <div style={{
-                      background: isConnected ? 'var(--color-instagram-gradient)' : 'rgba(255,255,255,0.05)',
+                      background: isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.2)' : 'var(--color-instagram-gradient)') : 'rgba(255,255,255,0.05)',
                       borderRadius: 'var(--radius-md)',
                       padding: '0.75rem',
-                      color: '#fff',
+                      color: isConnected && isInvalid ? '#f87171' : '#fff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: isConnected ? '0 4px 15px rgba(225, 48, 108, 0.3)' : 'none'
+                      boxShadow: isConnected && !isInvalid ? '0 4px 15px rgba(225, 48, 108, 0.3)' : 'none'
                     }}>
                       <InstagramIcon size={24} />
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span>Instagram Business</span>
                         {isConnected && (
-                          <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
-                            連携中
+                          <span className={isInvalid ? "badge badge-failed" : "badge badge-success"} style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                            {isInvalid ? '再連携が必要' : '連携中'}
                           </span>
                         )}
                       </h3>
@@ -375,20 +379,61 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
                           </div>
                         </div>
                       )}
+
+                      {isConnected && isInvalid && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.5rem',
+                          background: 'rgba(239, 68, 68, 0.05)',
+                          border: '1px solid rgba(239, 68, 68, 0.15)',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '0.75rem',
+                          color: '#f87171',
+                          fontSize: '0.8rem',
+                          marginTop: '0.75rem',
+                          lineHeight: '1.4'
+                        }}>
+                          <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+                          <div>
+                            <strong>{isExpired ? '連携期限が切れています:' : '連携エラーが発生しました:'}</strong>
+                            <div style={{ marginTop: '0.15rem', wordBreak: 'break-all', color: 'var(--text-secondary)' }}>
+                              {isExpired 
+                                ? `トークンの有効期限（${new Date(account.token_expires_at!).toLocaleDateString('ja-JP')}）が経過しています。`
+                                : (account.error_message || 'トークンの有効期限が切れているか、無効化されています。')
+                              }
+                            </div>
+                            <div style={{ marginTop: '0.35rem', fontWeight: 600 }}>
+                              「再連携する」ボタンをクリックして、アカウントの再連携を行ってください。
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div style={{ marginLeft: 'auto' }}>
                     {isConnected ? (
-                      <button
-                        onClick={() => handleDisconnect('instagram')}
-                        disabled={isLoading !== null}
-                        className="btn btn-secondary"
-                        style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)', display: 'flex', gap: '0.35rem' }}
-                      >
-                        <Link2Off size={16} />
-                        <span>連携を解除</span>
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => handleConnect('instagram')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2 size={16} />
+                          <span>{isLoading === 'instagram' ? '連携中...' : '再連携する'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDisconnect('instagram')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2Off size={16} />
+                          <span>連携を解除</span>
+                        </button>
+                      </div>
                     ) : (
                       <button
                         onClick={() => handleConnect('instagram')}
@@ -410,32 +455,36 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
           {(() => {
             const account = getAccountByPlatform('facebook');
             const isConnected = !!account;
+            const isExpired = isConnected && account.token_expires_at 
+              ? new Date(account.token_expires_at).getTime() < Date.now() 
+              : false;
+            const isInvalid = isConnected && (account.is_invalid || isExpired);
 
             return (
               <div className="card" style={{
-                borderLeft: '4px solid ' + (isConnected ? 'var(--color-facebook)' : 'var(--border-color)'),
+                borderLeft: '4px solid ' + (isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.8)' : 'var(--color-facebook)') : 'var(--border-color)'),
                 padding: '1.75rem'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flex: 1, minWidth: '280px' }}>
                     <div style={{
-                      background: isConnected ? 'var(--color-facebook)' : 'rgba(255,255,255,0.05)',
+                      background: isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.2)' : 'var(--color-facebook)') : 'rgba(255,255,255,0.05)',
                       borderRadius: 'var(--radius-md)',
                       padding: '0.75rem',
-                      color: '#fff',
+                      color: isConnected && isInvalid ? '#f87171' : '#fff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: isConnected ? '0 4px 15px rgba(24, 119, 242, 0.3)' : 'none'
+                      boxShadow: isConnected && !isInvalid ? '0 4px 15px rgba(24, 119, 242, 0.3)' : 'none'
                     }}>
                       <FacebookIcon size={24} />
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span>Facebookページ</span>
                         {isConnected && (
-                          <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
-                            連携中
+                          <span className={isInvalid ? "badge badge-failed" : "badge badge-success"} style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                            {isInvalid ? '再連携が必要' : '連携中'}
                           </span>
                         )}
                       </h3>
@@ -455,20 +504,61 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
                           </div>
                         </div>
                       )}
+
+                      {isConnected && isInvalid && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.5rem',
+                          background: 'rgba(239, 68, 68, 0.05)',
+                          border: '1px solid rgba(239, 68, 68, 0.15)',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '0.75rem',
+                          color: '#f87171',
+                          fontSize: '0.8rem',
+                          marginTop: '0.75rem',
+                          lineHeight: '1.4'
+                        }}>
+                          <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+                          <div>
+                            <strong>{isExpired ? '連携期限が切れています:' : '連携エラーが発生しました:'}</strong>
+                            <div style={{ marginTop: '0.15rem', wordBreak: 'break-all', color: 'var(--text-secondary)' }}>
+                              {isExpired 
+                                ? `トークンの有効期限（${new Date(account.token_expires_at!).toLocaleDateString('ja-JP')}）が経過しています。`
+                                : (account.error_message || 'トークンの有効期限が切れているか、無効化されています。')
+                              }
+                            </div>
+                            <div style={{ marginTop: '0.35rem', fontWeight: 600 }}>
+                              「再連携する」ボタンをクリックして、アカウントの再連携を行ってください。
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div style={{ marginLeft: 'auto' }}>
                     {isConnected ? (
-                      <button
-                        onClick={() => handleDisconnect('facebook')}
-                        disabled={isLoading !== null}
-                        className="btn btn-secondary"
-                        style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)', display: 'flex', gap: '0.35rem' }}
-                      >
-                        <Link2Off size={16} />
-                        <span>連携を解除</span>
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => handleConnect('facebook')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2 size={16} />
+                          <span>{isLoading === 'facebook' ? '連携中...' : '再連携する'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDisconnect('facebook')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2Off size={16} />
+                          <span>連携を解除</span>
+                        </button>
+                      </div>
                     ) : (
                       <button
                         onClick={() => handleConnect('facebook')}
@@ -490,32 +580,36 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
           {(() => {
             const account = getAccountByPlatform('google_business_profile');
             const isConnected = !!account;
+            const isExpired = isConnected && account.token_expires_at 
+              ? new Date(account.token_expires_at).getTime() < Date.now() 
+              : false;
+            const isInvalid = isConnected && (account.is_invalid || isExpired);
 
             return (
               <div className="card" style={{
-                borderLeft: '4px solid ' + (isConnected ? 'var(--color-google)' : 'var(--border-color)'),
+                borderLeft: '4px solid ' + (isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.8)' : 'var(--color-google)') : 'var(--border-color)'),
                 padding: '1.75rem'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flex: 1, minWidth: '280px' }}>
                     <div style={{
-                      background: isConnected ? 'var(--color-google)' : 'rgba(255,255,255,0.05)',
+                      background: isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.2)' : 'var(--color-google)') : 'rgba(255,255,255,0.05)',
                       borderRadius: 'var(--radius-md)',
                       padding: '0.75rem',
-                      color: '#fff',
+                      color: isConnected && isInvalid ? '#f87171' : '#fff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: isConnected ? '0 4px 15px rgba(66, 133, 244, 0.3)' : 'none'
+                      boxShadow: isConnected && !isInvalid ? '0 4px 15px rgba(66, 133, 244, 0.3)' : 'none'
                     }}>
                       <GoogleBusinessIcon size={24} />
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span>Googleビジネスプロフィール</span>
                         {isConnected && (
-                          <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
-                            連携中
+                          <span className={isInvalid ? "badge badge-failed" : "badge badge-success"} style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                            {isInvalid ? '再連携が必要' : '連携中'}
                           </span>
                         )}
                       </h3>
@@ -531,7 +625,37 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                             <Calendar size={14} />
-                            <span>トークン有効期限: {account.token_expires_at ? new Date(account.token_expires_at).toLocaleDateString() : '期限なし'}</span>
+                            <span>トークン有効期限: <strong>期限なし (自動更新)</strong></span>
+                          </div>
+                        </div>
+                      )}
+
+                      {isConnected && isInvalid && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.5rem',
+                          background: 'rgba(239, 68, 68, 0.05)',
+                          border: '1px solid rgba(239, 68, 68, 0.15)',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '0.75rem',
+                          color: '#f87171',
+                          fontSize: '0.8rem',
+                          marginTop: '0.75rem',
+                          lineHeight: '1.4'
+                        }}>
+                          <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+                          <div>
+                            <strong>{isExpired ? '連携期限が切れています:' : '連携エラーが発生しました:'}</strong>
+                            <div style={{ marginTop: '0.15rem', wordBreak: 'break-all', color: 'var(--text-secondary)' }}>
+                              {isExpired 
+                                ? `トークンの有効期限（${new Date(account.token_expires_at!).toLocaleDateString('ja-JP')}）が経過しています。`
+                                : (account.error_message || 'トークンの有効期限が切れているか、無効化されています。')
+                              }
+                            </div>
+                            <div style={{ marginTop: '0.35rem', fontWeight: 600 }}>
+                              「再連携する」ボタンをクリックして、アカウントの再連携を行ってください。
+                            </div>
                           </div>
                         </div>
                       )}
@@ -540,15 +664,26 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
 
                   <div style={{ marginLeft: 'auto' }}>
                     {isConnected ? (
-                      <button
-                        onClick={() => handleDisconnect('google_business_profile')}
-                        disabled={isLoading !== null}
-                        className="btn btn-secondary"
-                        style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)', display: 'flex', gap: '0.35rem' }}
-                      >
-                        <Link2Off size={16} />
-                        <span>連携を解除</span>
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => handleConnect('google_business_profile')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2 size={16} />
+                          <span>{isLoading === 'google_business_profile' ? '連携中...' : '再連携する'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDisconnect('google_business_profile')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2Off size={16} />
+                          <span>連携を解除</span>
+                        </button>
+                      </div>
                     ) : (
                       <button
                         onClick={() => handleConnect('google_business_profile')}

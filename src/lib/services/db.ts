@@ -36,6 +36,8 @@ export interface ConnectedAccount {
   token_expires_at: string | null;
   created_at: string;
   updated_at: string;
+  is_invalid?: boolean;
+  error_message?: string | null;
 }
 
 // 初期モックデータ (都城ドライビングスクール専用のサンプル)
@@ -419,6 +421,26 @@ export class DBService {
   ): Promise<void> {
     const nowStr = new Date().toISOString();
 
+    if (updateData.status === 'failed' && updateData.error_message) {
+      const lower = updateData.error_message.toLowerCase();
+      const isTokenErr = 
+        lower.includes('expired or revoked') ||
+        lower.includes('expiration has passed') ||
+        lower.includes('invalid oauth access token') ||
+        lower.includes('code: 190') ||
+        lower.includes('期限切れ') ||
+        lower.includes('再連携') ||
+        lower.includes('連携アカウント情報が見つかりません') ||
+        lower.includes('アクセス権限の復号化に失敗') ||
+        lower.includes('無効である可能性があります');
+
+      if (isTokenErr) {
+        DBService.markAccountInvalid(platform, updateData.error_message).catch((err) => {
+          console.error(`Failed to mark account ${platform} invalid in updatePostResult:`, err);
+        });
+      }
+    }
+
     if (!isFirebaseConfigured() || !adminDb) {
       const result = mockPostResults.find((r) => r.post_id === postId && r.platform === platform);
       if (result) {
@@ -497,6 +519,8 @@ export class DBService {
           token_expires_at: data.token_expires_at || null,
           created_at: data.created_at || new Date().toISOString(),
           updated_at: data.updated_at || new Date().toISOString(),
+          is_invalid: data.is_invalid || false,
+          error_message: data.error_message || null,
         });
       });
       return accounts;
@@ -519,6 +543,8 @@ export class DBService {
     const newAccount: ConnectedAccount = {
       ...accountData,
       id: accountData.platform, // platform をIDにする
+      is_invalid: false,
+      error_message: null,
       created_at: nowStr,
       updated_at: nowStr,
     };
@@ -529,6 +555,8 @@ export class DBService {
         mockConnectedAccounts[index] = {
           ...mockConnectedAccounts[index],
           ...accountData,
+          is_invalid: false,
+          error_message: null,
           updated_at: nowStr,
         };
         return mockConnectedAccounts[index];
@@ -547,6 +575,8 @@ export class DBService {
         access_token: accountData.access_token,
         refresh_token: accountData.refresh_token !== undefined ? accountData.refresh_token : null,
         token_expires_at: accountData.token_expires_at !== undefined ? accountData.token_expires_at : null,
+        is_invalid: false,
+        error_message: null,
         created_at: nowStr,
         updated_at: nowStr,
       }, { merge: true });
@@ -562,6 +592,8 @@ export class DBService {
         mockConnectedAccounts[index] = {
           ...mockConnectedAccounts[index],
           ...accountData,
+          is_invalid: false,
+          error_message: null,
           updated_at: nowStr,
         };
         return mockConnectedAccounts[index];
@@ -569,6 +601,36 @@ export class DBService {
         mockConnectedAccounts.push(newAccount);
         return newAccount;
       }
+    }
+  }
+
+  /**
+   * アカウントのトークン状態を無効マークする
+   */
+  static async markAccountInvalid(
+    platform: 'instagram' | 'facebook' | 'google_business_profile',
+    errorMessage: string
+  ): Promise<void> {
+    const nowStr = new Date().toISOString();
+    if (!isFirebaseConfigured() || !adminDb) {
+      const index = mockConnectedAccounts.findIndex((a) => a.platform === platform);
+      if (index !== -1) {
+        mockConnectedAccounts[index].is_invalid = true;
+        mockConnectedAccounts[index].error_message = errorMessage;
+        mockConnectedAccounts[index].updated_at = nowStr;
+      }
+      return;
+    }
+
+    try {
+      const docRef = adminDb.collection('connected_accounts').doc(platform);
+      await docRef.set({
+        is_invalid: true,
+        error_message: errorMessage,
+        updated_at: nowStr,
+      }, { merge: true });
+    } catch (e) {
+      console.error(`Failed to mark account ${platform} invalid:`, e);
     }
   }
 

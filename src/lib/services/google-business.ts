@@ -16,7 +16,9 @@ async function getFreshGoogleAccessToken(account: any): Promise<string> {
   
   // 期限切れの場合、リフレッシュトークンを使用して更新
   if (!account.refresh_token) {
-    throw new Error('Googleアクセストークンが期限切れで、リフレッシュトークンがありません。アカウントを再連携してください。');
+    const errorMsg = 'Googleアクセストークンが期限切れで、リフレッシュトークンがありません。アカウントを再連携してください。';
+    await DBService.markAccountInvalid('google_business_profile', errorMsg);
+    throw new Error(errorMsg);
   }
   
   const decryptedRefreshToken = decrypt(account.refresh_token);
@@ -42,7 +44,9 @@ async function getFreshGoogleAccessToken(account: any): Promise<string> {
   
   const data = await response.json();
   if (!response.ok || data.error) {
-    throw new Error(`Googleアクセストークンの更新に失敗しました: ${data.error_description || data.error}`);
+    const errorMsg = `Googleアクセストークンの更新に失敗しました: ${data.error_description || data.error}`;
+    await DBService.markAccountInvalid('google_business_profile', errorMsg);
+    throw new Error(errorMsg);
   }
   
   const newAccessToken = data.access_token;
