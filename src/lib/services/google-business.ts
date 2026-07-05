@@ -440,18 +440,28 @@ export async function getGoogleBusinessPerformance(
       'DIRECTIONS_CLICKS'
     ];
 
-    const queryParams = new URLSearchParams();
-    metricParams.forEach(m => queryParams.append('dailyMetrics', m));
-    queryParams.append('dailyRange.startDate.year', startYear.toString());
-    queryParams.append('dailyRange.startDate.month', startMonth.toString());
-    queryParams.append('dailyRange.startDate.day', startDay.toString());
-    queryParams.append('dailyRange.endDate.year', endYear.toString());
-    queryParams.append('dailyRange.endDate.month', endMonth.toString());
-    queryParams.append('dailyRange.endDate.day', endDay.toString());
-
-    const perfUrl = `https://businessprofileperformance.googleapis.com/v1/${targetLocationId}/performanceReport:fetchMultiDailyMetrics?${queryParams.toString()}`;
+    const perfUrl = `https://businessprofileperformance.googleapis.com/v1/${targetLocationId}/performanceReport:fetchMultiDailyMetrics`;
     const perfResponse = await fetch(perfUrl, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        dailyMetrics: metricParams,
+        dailyRange: {
+          startDate: {
+            year: startYear,
+            month: startMonth,
+            day: startDay
+          },
+          endDate: {
+            year: endYear,
+            month: endMonth,
+            day: endDay
+          }
+        }
+      })
     });
 
     const perfData = await safeJson(perfResponse, 'パフォーマンス指標の取得に失敗しました。');
