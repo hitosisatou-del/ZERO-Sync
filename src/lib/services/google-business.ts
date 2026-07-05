@@ -2,6 +2,18 @@ import { decrypt, encrypt } from '../crypto';
 import { PublishResult } from './facebook';
 import { DBService } from './db';
 
+// 安全にJSONをパースするヘルパー (HTMLエラー返却対策)
+async function safeJson(response: Response, errorMsgPrefix: string): Promise<any> {
+  const text = await response.text();
+  try {
+    if (!text.trim()) return {};
+    return JSON.parse(text);
+  } catch (e) {
+    console.error(`Google API non-JSON response (Status ${response.status}):`, text.substring(0, 200));
+    throw new Error(`${errorMsgPrefix} (HTTP ${response.status})。Google Cloud ConsoleでAPIが無効化されているか、アカウントの権限が不足しています。`);
+  }
+}
+
 // Googleアクセストークンの自動更新処理
 async function getFreshGoogleAccessToken(account: any): Promise<string> {
   const decryptedAccessToken = decrypt(account.access_token);
@@ -376,7 +388,7 @@ export async function getGoogleBusinessPerformance(
     const accountsResponse = await fetch('https://mybusinessaccountmanagement.googleapis.com/v1/accounts', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    const accountsData = await accountsResponse.json();
+    const accountsData = await safeJson(accountsResponse, 'Googleアカウント一覧の取得に失敗しました。');
     if (!accountsResponse.ok || accountsData.error) {
       throw new Error(accountsData.error?.message || 'Googleアカウントの取得に失敗しました。');
     }
@@ -396,7 +408,7 @@ export async function getGoogleBusinessPerformance(
         `https://mybusinessbusinessinformation.googleapis.com/v1/${activeAccountName}/locations?readMask=name,title`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-      const locationsData = await locationsResponse.json();
+      const locationsData = await safeJson(locationsResponse, '店舗情報の取得に失敗しました。');
       if (locationsResponse.ok && locationsData.locations && locationsData.locations.length > 0) {
         targetLocationId = locationsData.locations[0].name;
         locationTitle = locationsData.locations[0].title;
@@ -442,7 +454,7 @@ export async function getGoogleBusinessPerformance(
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    const perfData = await perfResponse.json();
+    const perfData = await safeJson(perfResponse, 'パフォーマンス指標の取得に失敗しました。');
     const dailyMap: Record<string, any> = {};
     
     const initializeDateMap = () => {
@@ -500,7 +512,7 @@ export async function getGoogleBusinessPerformance(
     
     let keywords: any[] = [];
     if (kwResponse.ok) {
-      const kwData = await kwResponse.json();
+      const kwData = await safeJson(kwResponse, '流入キーワードの取得に失敗しました。');
       const rawKeywords = kwData.searchKeywords || [];
       keywords = rawKeywords.map((k: any) => ({
         keyword: k.searchKeyword || '不明',
