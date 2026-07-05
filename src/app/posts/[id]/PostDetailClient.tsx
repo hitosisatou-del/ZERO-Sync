@@ -212,7 +212,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                 <img 
                   src={post.image_url} 
                   alt={post.title || 'Post image'} 
-                  style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+                  style={{ maxWidth: '100%', width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                 />
               </div>
             )}
