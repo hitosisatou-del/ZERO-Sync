@@ -191,12 +191,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
         </div>
       )}
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1.2fr 1fr',
-        gap: '2rem',
-        alignItems: 'start'
-      }}>
+      <div className="responsive-form-grid">
         {/* 左カラム: 投稿内容確認 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div className="card">
@@ -309,7 +304,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
         </div>
 
         {/* 右カラム: 配信結果ステータス & 再投稿アクション */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '2.5rem' }}>
+        <div className="responsive-preview-column">
           <div className="card">
             <h2 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
               配信結果ステータス

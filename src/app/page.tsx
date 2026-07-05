@@ -251,13 +251,7 @@ export default async function DashboardPage() {
 
               return (
                 <div key={post.id} className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--accent-primary)', position: 'relative' }}>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '1.5rem',
-                    flexWrap: 'wrap',
-                    alignItems: 'flex-start'
-                  }}>
+                  <div className="post-item-flex">
                     {/* 画像プレビュー */}
                     {post.image_url && (
                       <div style={{
@@ -280,7 +274,7 @@ export default async function DashboardPage() {
                     )}
 
                     {/* 投稿内容スニペット */}
-                    <div style={{ flex: 1, minWidth: '280px' }}>
+                    <div className="post-item-content">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>作成: {formattedCreatedAt}</span>
@@ -459,13 +453,7 @@ export default async function DashboardPage() {
 
               return (
                 <div key={post.id} className="card" style={{ padding: '1.5rem' }}>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '1.5rem',
-                    flexWrap: 'wrap',
-                    alignItems: 'flex-start'
-                  }}>
+                  <div className="post-item-flex">
                     {/* 画像プレビュー */}
                     {post.image_url && (
                       <div style={{
@@ -488,7 +476,7 @@ export default async function DashboardPage() {
                     )}
 
                     {/* 投稿内容スニペット */}
-                    <div style={{ flex: 1, minWidth: '280px' }}>
+                    <div className="post-item-content">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>作成: {formattedDate}</span>

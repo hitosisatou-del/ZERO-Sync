@@ -519,13 +519,7 @@ export default function NewPostPage() {
         {/* 右カラム: 個別調整 ＆ プレビュー */}
         <div className="responsive-preview-column">
           <div className="card" style={{ padding: '1rem' }}>
-            <div style={{
-              display: 'flex',
-              background: 'var(--bg-tertiary)',
-              padding: '0.25rem',
-              borderRadius: 'var(--radius-md)',
-              marginBottom: '1rem'
-            }}>
+            <div className="responsive-tabs">
               <button
                 type="button"
                 onClick={() => setActiveTab('edit')}
@@ -869,7 +863,7 @@ export default function NewPostPage() {
           </div>
 
           {/* 送信ボタン */}
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+          <div className="responsive-btn-group">
             <button
               type="button"
               className="btn btn-secondary"
