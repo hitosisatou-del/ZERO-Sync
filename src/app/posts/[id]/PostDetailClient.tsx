@@ -206,16 +206,13 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                 border: '1px solid var(--border-color)',
                 backgroundColor: 'var(--bg-tertiary)',
                 marginBottom: '1.5rem',
-                maxHeight: '300px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                maxHeight: '300px'
               }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src={post.image_url} 
                   alt={post.title || 'Post image'} 
-                  style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain' }}
+                  style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                 />
               </div>
             )}
