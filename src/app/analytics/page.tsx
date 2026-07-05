@@ -14,7 +14,8 @@ import {
   TrendingDown, 
   ArrowRight,
   HelpCircle,
-  Loader2
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
 
 interface DailyData {
@@ -43,6 +44,8 @@ export default function AnalyticsPage() {
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
   const [keywords, setKeywords] = useState<KeywordData[]>([]);
   const [activeSubTab, setActiveSubTab] = useState<'views' | 'clicks'>('views');
+  const [isDemo, setIsDemo] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -52,15 +55,18 @@ export default function AnalyticsPage() {
           throw new Error('インサイトデータの取得に失敗しました。');
         }
         const data = await response.json();
-        if (data.error) {
-          setError(data.error);
-        } else if (!data.isConnected) {
-          setIsConnected(false);
-        } else {
+        if (data.isConnected) {
           setIsConnected(true);
+          setIsDemo(!!data.isDemo);
+          setErrorDetail(data.errorDetail || null);
           setLocationName(data.locationName);
           setDailyData(data.dailyData || []);
           setKeywords(data.keywords || []);
+        } else {
+          setIsConnected(false);
+          if (data.error) {
+            setError(data.error);
+          }
         }
       } catch (err: any) {
         setError(err.message || '通信エラーが発生しました。');
@@ -208,6 +214,33 @@ export default function AnalyticsPage() {
           <span>直近30日間の統計分析</span>
         </div>
       </div>
+
+      {/* エラー警告バナー (連携済みだがリアルタイムデータの取得に失敗した場合) */}
+      {isDemo && errorDetail && (
+        <div style={{
+          background: 'rgba(245, 158, 11, 0.08)',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
+          borderRadius: 'var(--radius-md)',
+          padding: '1rem 1.25rem',
+          color: '#fcd34d',
+          fontSize: '0.85rem',
+          lineHeight: 1.5,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.25rem'
+        }}>
+          <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertTriangle size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
+            <span>⚠️ Googleマイビジネス実データの取得に失敗したため、デモデータを表示しています</span>
+          </div>
+          <div style={{ color: 'var(--text-secondary)' }}>
+            Googleアカウントとの連携は完了していますが、店舗のパフォーマンスデータが取得できませんでした。（エラー詳細: {errorDetail}）
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+            ※対策: Google Cloud Consoleで「Business Profile Performance API」が有効になっていること、および連携したGoogleアカウントがGoogleマップ上で店舗の「オーナー確認（オーナー認証）」を完了していることをご確認ください。
+          </div>
+        </div>
+      )}
 
       {/* サマリーカードグリッド */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
