@@ -402,6 +402,10 @@ export async function getGoogleBusinessPerformance(
     // 2. 店舗(Location)のリストを取得
     let targetLocationId = locationId;
     let locationTitle = '連携店舗';
+    if (account.account_name) {
+      const match = account.account_name.match(/^(.*?)\s*\(/);
+      locationTitle = match ? match[1].trim() : account.account_name;
+    }
     
     if (!targetLocationId) {
       const locationsResponse = await fetch(
