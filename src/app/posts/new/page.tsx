@@ -13,7 +13,7 @@ import {
   Loader2,
   Sparkles
 } from 'lucide-react';
-import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
+import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
 import AIPostModal from '@/components/AIPostModal';
 
 export default function NewPostPage() {
@@ -33,21 +33,24 @@ export default function NewPostPage() {
     instagram: true,
     facebook: true,
     google_business_profile: true,
+    twitter: true,
   });
 
   // 個別本文
   const [instagramText, setInstagramText] = useState('');
   const [facebookText, setFacebookText] = useState('');
   const [googleText, setGoogleText] = useState('');
+  const [twitterText, setTwitterText] = useState('');
 
   // 個別編集されたかどうかのフラグ (未編集なら共通本文と同期する)
   const [isIgEdited, setIsIgEdited] = useState(false);
   const [isFbEdited, setIsFbEdited] = useState(false);
   const [isGbpEdited, setIsGbpEdited] = useState(false);
+  const [isTwitterEdited, setIsTwitterEdited] = useState(false);
 
   // プレビュー表示用のアクティブタブ ('preview' | 'edit')
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
-  const [previewPlatform, setPreviewPlatform] = useState<'instagram' | 'facebook' | 'google_business_profile'>('instagram');
+  const [previewPlatform, setPreviewPlatform] = useState<'instagram' | 'facebook' | 'google_business_profile' | 'twitter'>('instagram');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +63,8 @@ export default function NewPostPage() {
     if (!isIgEdited) setInstagramText(baseText);
     if (!isFbEdited) setFacebookText(baseText);
     if (!isGbpEdited) setGoogleText(baseText);
-  }, [baseText, isIgEdited, isFbEdited, isGbpEdited]);
+    if (!isTwitterEdited) setTwitterText(baseText);
+  }, [baseText, isIgEdited, isFbEdited, isGbpEdited, isTwitterEdited]);
 
   // プラットフォーム選択が切り替わったときにプレビュー対象プラットフォームも同期
   const handlePlatformToggle = (key: keyof typeof platforms) => {
@@ -157,7 +161,7 @@ export default function NewPostPage() {
     // バリデーション
     const selectedPlatforms = Object.keys(platforms).filter(
       (key) => platforms[key as keyof typeof platforms]
-    ) as Array<'instagram' | 'facebook' | 'google_business_profile'>;
+    ) as Array<'instagram' | 'facebook' | 'google_business_profile' | 'twitter'>;
 
     if (selectedPlatforms.length === 0) {
       setError('投稿先プラットフォームを少なくとも1つ選択してください。');
@@ -172,6 +176,12 @@ export default function NewPostPage() {
     // Instagram は画像が必須
     if (platforms.instagram && !imageUrl) {
       setError('Instagramへの投稿には画像が必須です。');
+      return;
+    }
+
+    // X (Twitter) の文字数制限チェック (最大280文字)
+    if (platforms.twitter && twitterText.length > 280) {
+      setError('X（旧Twitter）の投稿は280文字以内に収めてください。');
       return;
     }
 
@@ -537,6 +547,39 @@ export default function NewPostPage() {
                   disabled={isLoading}
                 />
               </label>
+
+              {/* X (Twitter) チェックボックス */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '1rem',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'rgba(255,255,255,0.02)',
+                border: '1px solid ' + (platforms.twitter ? 'rgba(255, 255, 255, 0.2)' : 'var(--border-color)'),
+                cursor: 'pointer'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{
+                    color: platforms.twitter ? '#fff' : 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <TwitterIcon size={20} />
+                  </span>
+                  <div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>X (旧Twitter)</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>短文ツイート・ハッシュタグ投稿</div>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={platforms.twitter}
+                  onChange={() => handlePlatformToggle('twitter')}
+                  style={{ width: '18px', height: '18px', accentColor: '#1DA1F2' }}
+                  disabled={isLoading}
+                />
+              </label>
             </div>
           </div>
         </div>
@@ -686,7 +729,48 @@ export default function NewPostPage() {
                     </div>
                   )}
 
-                  {!platforms.instagram && !platforms.facebook && !platforms.google_business_profile && (
+                  {/* X (旧Twitter) 本文 */}
+                  {platforms.twitter && (
+                    <div style={{ borderLeft: '3px solid #e1e8ed', paddingLeft: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#e1e8ed', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <TwitterIcon size={14} /> X（旧Twitter）用
+                        </span>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          {isTwitterEdited && (
+                            <button
+                              type="button"
+                              onClick={() => { setIsTwitterEdited(false); setTwitterText(baseText); }}
+                              style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.75rem', cursor: 'pointer' }}
+                            >
+                              共通本文と同期
+                            </button>
+                          )}
+                          <span style={{ 
+                            fontSize: '0.75rem', 
+                            color: twitterText.length > 280 ? '#f87171' : 'var(--text-muted)',
+                            fontWeight: twitterText.length > 280 ? 'bold' : 'normal'
+                          }}>
+                            {twitterText.length} / 280
+                          </span>
+                        </div>
+                      </div>
+                      <textarea
+                        value={twitterText}
+                        onChange={(e) => { setTwitterText(e.target.value); setIsTwitterEdited(true); }}
+                        placeholder="X（旧Twitter）向け本文 (最大280文字)"
+                        className="form-textarea"
+                        style={{ 
+                          minHeight: '100px', 
+                          fontSize: '0.85rem',
+                          borderColor: twitterText.length > 280 ? 'rgba(239, 68, 68, 0.5)' : undefined
+                        }}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  )}
+
+                  {!platforms.instagram && !platforms.facebook && !platforms.google_business_profile && !platforms.twitter && (
                     <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>
                       プラットフォームを選択すると、個別の本文調整エリアが表示されます。
                     </p>
@@ -749,6 +833,23 @@ export default function NewPostPage() {
                       }}
                     >
                       Google
+                    </button>
+                  )}
+                  {platforms.twitter && (
+                    <button
+                      type="button"
+                      onClick={() => setPreviewPlatform('twitter')}
+                      style={{
+                        padding: '0.35rem 0.75rem',
+                        fontSize: '0.75rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid ' + (previewPlatform === 'twitter' ? '#fff' : 'var(--border-color)'),
+                        background: previewPlatform === 'twitter' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                        color: previewPlatform === 'twitter' ? '#fff' : 'var(--text-muted)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      X (Twitter)
                     </button>
                   )}
                 </div>
@@ -828,7 +929,39 @@ export default function NewPostPage() {
                     </div>
                   )}
 
-                  {/* GOOGLE PREVIEW */}
+                  {/* X (Twitter) PREVIEW */}
+                  {previewPlatform === 'twitter' && platforms.twitter && (
+                    <div style={{ padding: '0.875rem' }}>
+                      {/* ヘッダー */}
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#fff', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>X</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>都城ドライビングスクール</span>
+                            <span style={{ fontSize: '0.8rem', color: '#71767b' }}>@miyakonojo_ds_x · 1秒</span>
+                          </div>
+                          {/* テキスト */}
+                          <p style={{ fontSize: '0.9rem', color: '#e7e9ea', whiteSpace: 'pre-wrap', marginTop: '0.25rem', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                            {twitterText || 'ツイート本文を入力してください。'}
+                          </p>
+                          {/* メディア */}
+                          {imagePreview && (
+                            <div style={{ width: '100%', maxHeight: '250px', overflow: 'hidden', border: '1px solid #2f3336', borderRadius: '16px' }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={imagePreview} alt="X Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                            </div>
+                          )}
+                          {/* アクションバー */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '320px', color: '#71767b', fontSize: '0.8rem', marginTop: '0.75rem' }}>
+                            <span>💬 0</span>
+                            <span>🔁 0</span>
+                            <span>❤️ 0</span>
+                            <span>📊 0</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {previewPlatform === 'google_business_profile' && platforms.google_business_profile && (
                     <div style={{ padding: '0.875rem' }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--color-google)', fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>

@@ -4,7 +4,7 @@ import { DBService } from '@/lib/services/db';
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const platform = searchParams.get('platform') as 'instagram' | 'facebook' | 'google_business_profile' | null;
+    const platform = searchParams.get('platform') as 'instagram' | 'facebook' | 'google_business_profile' | 'twitter' | null;
 
     if (!platform) {
       return NextResponse.json({ error: 'プラットフォームが指定されていません。' }, { status: 400 });

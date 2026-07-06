@@ -14,7 +14,7 @@ import {
   Loader2,
   Link2
 } from 'lucide-react';
-import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
+import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
 import { Post, PostResult } from '@/lib/services/db';
 
 interface PostDetailClientProps {
@@ -80,6 +80,8 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
         return <FacebookIcon size={size} />;
       case 'google_business_profile':
         return <GoogleBusinessIcon size={size} />;
+      case 'twitter':
+        return <TwitterIcon size={size} />;
       default:
         return null;
     }
@@ -93,13 +95,15 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
         return 'Facebook';
       case 'google_business_profile':
         return 'Googleビジネスプロフィール';
+      case 'twitter':
+        return 'X (旧Twitter)';
       default:
         return platform;
     }
   };
 
   // 再投稿 (リトライ) 処理
-  const handleRetry = async (platform: 'instagram' | 'facebook' | 'google_business_profile') => {
+  const handleRetry = async (platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter') => {
     setRetryingPlatform(platform);
     setError(null);
 

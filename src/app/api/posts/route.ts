@@ -3,6 +3,7 @@ import { DBService } from '@/lib/services/db';
 import { publishToFacebook } from '@/lib/services/facebook';
 import { publishToInstagram } from '@/lib/services/instagram';
 import { publishToGoogleBusiness } from '@/lib/services/google-business';
+import { publishToTwitter } from '@/lib/services/twitter';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,9 +14,10 @@ export async function POST(request: NextRequest) {
       instagram_text,
       facebook_text,
       google_business_text,
+      twitter_text,
       link_url,
       image_url,
-      platforms, // Array<'instagram' | 'facebook' | 'google_business_profile'>
+      platforms, // Array<'instagram' | 'facebook' | 'google_business_profile' | 'twitter'>
       scheduled_at,
     } = body;
 
@@ -32,12 +34,13 @@ export async function POST(request: NextRequest) {
       {
         title,
         base_text,
-        instagram_text,
-        facebook_text,
-        google_business_text,
-        link_url,
-        image_url,
-        scheduled_at,
+        instagram_text: instagram_text || null,
+        facebook_text: facebook_text || null,
+        google_business_text: google_business_text || null,
+        twitter_text: twitter_text || null,
+        link_url: link_url || null,
+        image_url: image_url || null,
+        scheduled_at: scheduled_at || null,
       },
       platforms
     );
@@ -101,6 +104,14 @@ export async function POST(request: NextRequest) {
             host
           );
           await DBService.updatePostResult(post.id, 'google_business_profile', result);
+        } else if (platform === 'twitter') {
+          // Twitter投稿
+          const result = await publishToTwitter(
+            account.access_token,
+            twitter_text || base_text,
+            image_url
+          );
+          await DBService.updatePostResult(post.id, 'twitter', result);
         }
       } catch (err: any) {
         console.error(`Error publishing to ${platform}:`, err);

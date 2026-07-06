@@ -13,7 +13,7 @@ import {
   UserPlus,
   Shield
 } from 'lucide-react';
-import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
+import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
 import { ConnectedAccount } from '@/lib/services/db';
 
 interface AccountsClientProps {
@@ -57,7 +57,7 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
   };
 
   // 連携の実行
-  const handleConnect = async (platform: 'instagram' | 'facebook' | 'google_business_profile') => {
+  const handleConnect = async (platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter') => {
     setIsLoading(platform);
     setError(null);
     setSuccessMessage(null);
@@ -73,6 +73,10 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
       }
       if (platform === 'google_business_profile') {
         window.location.href = '/api/auth/google';
+        return;
+      }
+      if (platform === 'twitter') {
+        window.location.href = '/api/auth/twitter';
         return;
       }
     }
@@ -105,8 +109,8 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
   };
 
   // 連携解除の実行
-  const handleDisconnect = async (platform: 'instagram' | 'facebook' | 'google_business_profile') => {
-    if (!confirm(`${platform === 'google_business_profile' ? 'Googleビジネスプロフィール' : platform}の連携を解除しますか？`)) {
+  const handleDisconnect = async (platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter') => {
+    if (!confirm(`${platform === 'google_business_profile' ? 'Googleビジネスプロフィール' : platform === 'twitter' ? 'X (旧Twitter)' : platform}の連携を解除しますか？`)) {
       return;
     }
 
@@ -693,6 +697,131 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
                       >
                         <Link2 size={16} />
                         <span>{isLoading === 'google_business_profile' ? '連携処理中...' : 'Googleアカウントで連携'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* X (旧Twitter) 連携カード */}
+          {(() => {
+            const account = getAccountByPlatform('twitter');
+            const isConnected = !!account;
+            const isExpired = isConnected && account.token_expires_at 
+              ? new Date(account.token_expires_at).getTime() < Date.now() 
+              : false;
+            const isInvalid = isConnected && (account.is_invalid || isExpired);
+
+            return (
+              <div className="card" style={{
+                borderLeft: '4px solid ' + (isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.8)' : '#e1e8ed') : 'var(--border-color)'),
+                padding: '1.75rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flex: 1, minWidth: '280px' }}>
+                    <div style={{
+                      background: isConnected ? (isInvalid ? 'rgba(239, 68, 68, 0.2)' : '#000000') : 'rgba(255,255,255,0.05)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.75rem',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: isConnected && !isInvalid ? '0 4px 15px rgba(0, 0, 0, 0.3)' : 'none'
+                    }}>
+                      <TwitterIcon size={24} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>X (旧Twitter)</span>
+                        {isConnected && (
+                          <span className={isInvalid ? "badge badge-failed" : "badge badge-success"} style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                            {isInvalid ? '再連携が必要' : '連携中'}
+                          </span>
+                        )}
+                      </h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                        X API v2（Tweets API）を使用して、X（旧Twitter）のアカウントへ最新の教習情報やキャンペーンをツイートします。
+                      </p>
+
+                      {isConnected && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            <UserCheck size={14} style={{ color: '#1DA1F2' }} />
+                            <span>連携アカウント: <strong>{account.account_name}</strong></span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            <Calendar size={14} />
+                            <span>トークン有効期限: <strong>期限なし (自動更新)</strong></span>
+                          </div>
+                        </div>
+                      )}
+
+                      {isConnected && isInvalid && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.5rem',
+                          background: 'rgba(239, 68, 68, 0.05)',
+                          border: '1px solid rgba(239, 68, 68, 0.15)',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '0.75rem',
+                          color: '#f87171',
+                          fontSize: '0.8rem',
+                          marginTop: '0.75rem',
+                          lineHeight: '1.4'
+                        }}>
+                          <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+                          <div>
+                            <strong>{isExpired ? '連携期限が切れています:' : '連携エラーが発生しました:'}</strong>
+                            <div style={{ marginTop: '0.15rem', wordBreak: 'break-all', color: 'var(--text-secondary)' }}>
+                              {isExpired 
+                                ? `トークンの有効期限（${new Date(account.token_expires_at!).toLocaleDateString('ja-JP')}）が経過しています。`
+                                : (account.error_message || 'トークンの有効期限が切れているか、無効化されています。')
+                              }
+                            </div>
+                            <div style={{ marginTop: '0.35rem', fontWeight: 600 }}>
+                              「再連携する」ボタンをクリックして、アカウントの再連携を行ってください。
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ marginLeft: 'auto' }}>
+                    {isConnected ? (
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => handleConnect('twitter')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2 size={16} />
+                          <span>{isLoading === 'twitter' ? '連携中...' : '再連携する'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDisconnect('twitter')}
+                          disabled={isLoading !== null}
+                          className="btn btn-secondary"
+                          style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Link2Off size={16} />
+                          <span>連携を解除</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleConnect('twitter')}
+                        disabled={isLoading !== null}
+                        className="btn btn-primary"
+                        style={{ backgroundColor: '#000000', border: '1px solid var(--border-color)', color: '#fff', display: 'flex', gap: '0.35rem' }}
+                      >
+                        <Link2 size={16} />
+                        <span>{isLoading === 'twitter' ? '連携処理中...' : 'Xアカウントで連携'}</span>
                       </button>
                     )}
                   </div>

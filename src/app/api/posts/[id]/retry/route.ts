@@ -3,6 +3,7 @@ import { DBService } from '@/lib/services/db';
 import { publishToFacebook, PublishResult } from '@/lib/services/facebook';
 import { publishToInstagram } from '@/lib/services/instagram';
 import { publishToGoogleBusiness } from '@/lib/services/google-business';
+import { publishToTwitter } from '@/lib/services/twitter';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = await params;
     const postId = resolvedParams.id;
     const body = await request.json();
-    const { platform } = body; // 'instagram' | 'facebook' | 'google_business_profile'
+    const { platform } = body; // 'instagram' | 'facebook' | 'google_business_profile' | 'twitter'
 
     if (!platform) {
       return NextResponse.json({ error: '再投稿対象のプラットフォームが指定されていません。' }, { status: 400 });
@@ -76,6 +77,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         post.image_url,
         postId,
         host
+      );
+    } else if (platform === 'twitter') {
+      result = await publishToTwitter(
+        account.access_token,
+        post.twitter_text || post.base_text,
+        post.image_url
       );
     }
 

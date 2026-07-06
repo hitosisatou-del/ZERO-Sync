@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Calendar
 } from 'lucide-react';
-import { InstagramIcon, FacebookIcon, GoogleBusinessIcon } from '@/components/Icons';
+import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
 import CronTrigger from '@/components/CronTrigger';
 import PublishNowButton from '@/components/PublishNowButton';
 
@@ -104,6 +104,8 @@ export default async function DashboardPage() {
         return <FacebookIcon size={size} />;
       case 'google_business_profile':
         return <GoogleBusinessIcon size={size} />;
+      case 'twitter':
+        return <TwitterIcon size={size} />;
       default:
         return null;
     }
@@ -118,6 +120,8 @@ export default async function DashboardPage() {
         return 'Facebook';
       case 'google_business_profile':
         return 'Googleビジネス';
+      case 'twitter':
+        return 'X (旧Twitter)';
       default:
         return platform;
     }

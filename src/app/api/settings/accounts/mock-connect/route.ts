@@ -23,6 +23,9 @@ export async function POST(request: NextRequest) {
     } else if (platform === 'google_business_profile') {
       accountName = '都城ドライビングスクール 都城校 (Google店舗)';
       externalAccountId = 'locations/1234567890';
+    } else if (platform === 'twitter') {
+      accountName = '都城ドライビングスクール (@miyakonojo_ds_x)';
+      externalAccountId = '1234567890_x';
     } else {
       return NextResponse.json({ error: '無効なプラットフォームです。' }, { status: 400 });
     }

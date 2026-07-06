@@ -8,6 +8,7 @@ export interface Post {
   instagram_text: string | null;
   facebook_text: string | null;
   google_business_text: string | null;
+  twitter_text: string | null;
   link_url: string | null;
   image_url: string | null;
   created_at: string;
@@ -18,7 +19,7 @@ export interface Post {
 export interface PostResult {
   id: string;
   post_id: string;
-  platform: 'instagram' | 'facebook' | 'google_business_profile';
+  platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter';
   status: 'pending' | 'success' | 'failed' | 'scheduled';
   external_post_id: string | null;
   error_message: string | null;
@@ -28,7 +29,7 @@ export interface PostResult {
 
 export interface ConnectedAccount {
   id: string;
-  platform: 'instagram' | 'facebook' | 'google_business_profile';
+  platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter';
   account_name: string | null;
   external_account_id: string | null;
   access_token: string;
@@ -49,6 +50,7 @@ let mockPosts: Post[] = [
     instagram_text: '【夏の免許取得キャンペーン開始！】\n本日より、学生の皆様を応援する夏休み特別キャンペーンがスタートします！短期集中プランや、友達紹介での割引特典など盛りだくさん。都城ドライビングスクールで、この夏一生ものの運転免許を手に入れませんか？詳細はプロフィールリンクからウェブサイトをチェック！\n\n#都城 #教習所 #免許取得 #都城ドライビングスクール #免許 #夏休み #教習 #車好きな人と繋がりたい',
     facebook_text: '【夏の免許取得キャンペーン開始！】\n本日より、学生の皆様を応援する夏休み特別キャンペーンがスタートします！\n短期集中プランや、友達紹介での割引特典など盛りだくさん。都城ドライビングスクールで、この夏一生ものの運転免許を手に入れませんか？\n\n▼ キャンペーン詳細・お申し込みはこちら\nhttps://example.com/summer-campaign',
     google_business_text: '【都城ドライビングスクール】夏の免許取得キャンペーン開始！\n本日より学生向け夏休み特別キャンペーンがスタート。短期集中プランや紹介割引などお得な特典をご用意しています。この夏、一生ものの免許を手に入れませんか？',
+    twitter_text: '【夏の免許取得キャンペーン開始！】本日より夏休み特別キャンペーンがスタートします！短期集中プランや紹介割引特典も充実。この夏、都城ドライビングスクールで一生ものの運転免許を手に入れませんか？詳細はサイトをチェック！ #都城 #教習所 #免許取得',
     link_url: 'https://example.com/summer-campaign',
     image_url: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=800&auto=format&fit=crop',
     created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
@@ -61,6 +63,7 @@ let mockPosts: Post[] = [
     instagram_text: '都城ドライビングスクールに新しい教習車が仲間入りしました！✨\n最新の安全機能を備えたスタイリッシュな車両で、より快適で安全な教習をサポートします。🚘\nみなさん、新しい車での教習をぜひ楽しみにしてくださいね！\n\n#都城 #教習所 #都城ドライビングスクール #新車 #教習車 #安全運転 #プリウス',
     facebook_text: '都城ドライビングスクールに新しい教習車が仲間入りしました！\n最新の安全機能を備えたスタイリッシュな車両で、より快適で安全な教習をサポートします。みなさん、新しい車での教習をぜひ楽しみにしてくださいね！',
     google_business_text: '【都城ドライビングスクール】新しい教習車が納車されました！最新の安全機能を備えた快適な教習車で、皆様の運転免許取得をしっかりサポートします。ご予約お待ちしております！',
+    twitter_text: '都城ドライビングスクールに新しい教習車が仲間入り！🚘最新の安全機能を備えたスタイリッシュな車両で、快適・安全な教習をサポートします。新しい車での教習を楽しみにしていてくださいね！✨ #都城 #教習所 #新車 #プリウス',
     link_url: null,
     image_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800&auto=format&fit=crop',
     created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
@@ -73,6 +76,7 @@ let mockPosts: Post[] = [
     instagram_text: '【秋の全国交通安全運動スタート！】🍂🚘\n来週より交通安全キャンペーンが始まります。都城ドライビングスクールでは特別講習会を実施します！安全マナーを再確認して、事故ゼロを目指しましょう。✨\n\n#都城 #教習所 #都城ドライビングスクール #交通安全 #安全運転 #秋の全国交通安全運動 #宮崎',
     facebook_text: '【秋の交通安全キャンペーンのお知らせ】\n来週より秋の全国交通安全運動が始まります。\n都城ドライビングスクールでは、地域の皆様とともに交通安全意識を高めるための特別講習会を実施いたします。\n安全な運転は正しい知識とマナーから。ご参加お待ちしております。\n\n▼ イベント詳細・ご予約はこちら\nhttps://example.com/safety-campaign',
     google_business_text: '【都城ドライビングスクール】秋の交通安全キャンペーン実施のお知らせ。安全意識向上のため、特別講習会を開催します。どなたでもご参加いただけます。安全第一で秋を過ごしましょう！',
+    twitter_text: '【秋の交通安全キャンペーン】来週から秋の全国交通安全運動が始まります。都城ドライビングスクールでは特別講習会を実施！正しい知識とマナーで事故ゼロを目指しましょう。ご参加お待ちしています！🍂🚘 #都城 #教習所 #交通安全 #宮崎',
     link_url: 'https://example.com/safety-campaign',
     image_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop',
     created_at: new Date().toISOString(),
@@ -176,6 +180,17 @@ let mockConnectedAccounts: ConnectedAccount[] = [
     token_expires_at: new Date(Date.now() + 3600000 * 24 * 60).toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'acc-4',
+    platform: 'twitter',
+    account_name: '都城ドライビングスクール (@miyakonojo_ds_x)',
+    external_account_id: '1234567890_x',
+    access_token: 'encrypted_dummy_token',
+    refresh_token: null,
+    token_expires_at: new Date(Date.now() + 3600000 * 24 * 60).toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   }
 ];
 
@@ -213,6 +228,7 @@ export class DBService {
           instagram_text: data.instagram_text || null,
           facebook_text: data.facebook_text || null,
           google_business_text: data.google_business_text || null,
+          twitter_text: data.twitter_text || null,
           link_url: data.link_url || null,
           image_url: data.image_url || null,
           created_at: data.created_at || new Date().toISOString(),
@@ -271,6 +287,7 @@ export class DBService {
         instagram_text: data.instagram_text || null,
         facebook_text: data.facebook_text || null,
         google_business_text: data.google_business_text || null,
+        twitter_text: data.twitter_text || null,
         link_url: data.link_url || null,
         image_url: data.image_url || null,
         created_at: data.created_at || new Date().toISOString(),
@@ -313,7 +330,7 @@ export class DBService {
    */
   static async createPost(
     postData: Omit<Post, 'id' | 'created_at' | 'updated_at'> & { scheduled_at?: string | null },
-    platforms: Array<'instagram' | 'facebook' | 'google_business_profile'>
+    platforms: Array<'instagram' | 'facebook' | 'google_business_profile' | 'twitter'>
   ): Promise<Post> {
     const nowStr = new Date().toISOString();
     const isScheduled = !!postData.scheduled_at;
@@ -363,6 +380,7 @@ export class DBService {
         instagram_text: postData.instagram_text !== undefined ? postData.instagram_text : null,
         facebook_text: postData.facebook_text !== undefined ? postData.facebook_text : null,
         google_business_text: postData.google_business_text !== undefined ? postData.google_business_text : null,
+        twitter_text: postData.twitter_text !== undefined ? postData.twitter_text : null,
         link_url: postData.link_url !== undefined ? postData.link_url : null,
         image_url: postData.image_url !== undefined ? postData.image_url : null,
         created_at: nowStr,
@@ -412,7 +430,7 @@ export class DBService {
    */
   static async updatePostResult(
     postId: string,
-    platform: 'instagram' | 'facebook' | 'google_business_profile',
+    platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter',
     updateData: {
       status: 'pending' | 'success' | 'failed';
       external_post_id?: string | null;
@@ -608,7 +626,7 @@ export class DBService {
    * アカウントのトークン状態を無効マークする
    */
   static async markAccountInvalid(
-    platform: 'instagram' | 'facebook' | 'google_business_profile',
+    platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter',
     errorMessage: string
   ): Promise<void> {
     const nowStr = new Date().toISOString();
@@ -637,7 +655,7 @@ export class DBService {
   /**
    * アカウント連携解除
    */
-  static async disconnectAccount(platform: 'instagram' | 'facebook' | 'google_business_profile'): Promise<void> {
+  static async disconnectAccount(platform: 'instagram' | 'facebook' | 'google_business_profile' | 'twitter'): Promise<void> {
     if (!isFirebaseConfigured() || !adminDb) {
       mockConnectedAccounts = mockConnectedAccounts.filter((a) => a.platform !== platform);
       return;
@@ -682,6 +700,7 @@ export class DBService {
         instagram_text: data.instagram_text || null,
         facebook_text: data.facebook_text || null,
         google_business_text: data.google_business_text || null,
+        twitter_text: data.twitter_text || null,
         link_url: data.link_url || null,
         image_url: data.image_url || null,
         created_at: data.created_at || nowStr,

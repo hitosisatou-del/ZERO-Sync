@@ -3,6 +3,7 @@ import { DBService } from '@/lib/services/db';
 import { publishToFacebook } from '@/lib/services/facebook';
 import { publishToInstagram } from '@/lib/services/instagram';
 import { publishToGoogleBusiness } from '@/lib/services/google-business';
+import { publishToTwitter } from '@/lib/services/twitter';
 
 // GET (Vercel Cron) および POST (手動実行) の両方をサポート
 export async function GET(request: NextRequest) {
@@ -90,6 +91,12 @@ async function processScheduledPosts(request: NextRequest) {
               post.image_url,
               post.id,
               host
+            );
+          } else if (res.platform === 'twitter') {
+            publishResult = await publishToTwitter(
+              account.access_token,
+              post.twitter_text || post.base_text,
+              post.image_url
             );
           }
 

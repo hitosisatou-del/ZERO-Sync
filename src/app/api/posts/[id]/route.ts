@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DBService } from '@/lib/services/db';
 import { deleteFromFacebook } from '@/lib/services/facebook';
 import { deleteFromGoogleBusiness } from '@/lib/services/google-business';
+import { deleteFromTwitter } from '@/lib/services/twitter';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -45,6 +46,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         } else if (res.platform === 'google_business_profile') {
           const delRes = await deleteFromGoogleBusiness(account.access_token, res.external_post_id);
           return { platform: 'google_business_profile', status: delRes.status, error: delRes.error_message };
+        } else if (res.platform === 'twitter') {
+          const delRes = await deleteFromTwitter(account.access_token, res.external_post_id);
+          return { platform: 'twitter', status: delRes.status, error: delRes.error_message };
         } else if (res.platform === 'instagram') {
           // Instagram Graph API は仕様として投稿削除APIを公開していません
           return { platform: 'instagram', status: 'skipped', message: 'Instagram API は仕様として投稿削除をサポートしていません。' };
