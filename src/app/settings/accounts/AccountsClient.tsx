@@ -584,7 +584,7 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
           {(() => {
             const account = getAccountByPlatform('google_business_profile');
             const isConnected = !!account;
-            const isExpired = isConnected && account.token_expires_at 
+            const isExpired = isConnected && account.token_expires_at && !account.refresh_token
               ? new Date(account.token_expires_at).getTime() < Date.now() 
               : false;
             const isInvalid = isConnected && (account.is_invalid || isExpired);
@@ -709,7 +709,7 @@ export default function AccountsClient({ initialAccounts }: AccountsClientProps)
           {(() => {
             const account = getAccountByPlatform('twitter');
             const isConnected = !!account;
-            const isExpired = isConnected && account.token_expires_at 
+            const isExpired = isConnected && account.token_expires_at && !account.refresh_token
               ? new Date(account.token_expires_at).getTime() < Date.now() 
               : false;
             const isInvalid = isConnected && (account.is_invalid || isExpired);

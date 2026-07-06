@@ -118,7 +118,13 @@ export async function GET(request: NextRequest) {
 
     // 4. アカウント連携情報を保存
     const encryptedAccessToken = encrypt(access_token);
-    const encryptedRefreshToken = refresh_token ? encrypt(refresh_token) : null;
+    
+    // 既存の連携情報を取得して、新しいリフレッシュトークンが送られてこなかった場合は既存のものを引き継ぐ
+    const existingAccounts = await DBService.getConnectedAccounts();
+    const existingAccount = existingAccounts.find(a => a.platform === 'google_business_profile');
+    const encryptedRefreshToken = refresh_token 
+      ? encrypt(refresh_token) 
+      : (existingAccount && existingAccount.refresh_token ? existingAccount.refresh_token : null);
 
     await DBService.saveConnectedAccount({
       platform: 'google_business_profile',
