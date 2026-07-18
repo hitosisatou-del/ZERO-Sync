@@ -387,7 +387,7 @@ export default function NewPostPage() {
                     alignItems: 'center',
                     gap: '0.25rem',
                     borderColor: 'var(--accent-primary)',
-                    color: '#fff',
+                    color: 'var(--accent-primary)',
                     background: 'rgba(99, 102, 241, 0.08)'
                   }}
                 >
