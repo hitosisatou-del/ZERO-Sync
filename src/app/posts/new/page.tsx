@@ -16,6 +16,37 @@ import {
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
 import AIPostModal from '@/components/AIPostModal';
 
+// X (Twitter) の文字数（ポイント数）をカウントする関数 (全角=2, 半角=1, URL一律=23)
+export function getTwitterLength(text: string): number {
+  if (!text) return 0;
+  
+  // URLを一律23文字に置換するための正規表現
+  const urlRegex = /https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+  const processedText = text.replace(urlRegex, 'x'.repeat(23));
+  
+  let length = 0;
+  // サロゲートペアを考慮して文字単位でループ
+  for (const char of processedText) {
+    const code = char.charCodeAt(0);
+    if (code <= 0x007f) {
+      length += 1;
+    } else {
+      length += 2;
+    }
+  }
+  return length;
+}
+
+// 指定されたポイント数以下になるまで文字列を末尾から削る関数
+export function truncateToTwitterLength(text: string, maxPoints: number): string {
+  let result = text;
+  while (getTwitterLength(result) > maxPoints && result.length > 0) {
+    // 末尾からサロゲートペアを考慮して1文字削る
+    result = [...result].slice(0, -1).join('');
+  }
+  return result;
+}
+
 export default function NewPostPage() {
   const router = useRouter();
   
@@ -81,7 +112,8 @@ export default function NewPostPage() {
   // X（旧Twitter）向け自動短縮処理
   const handleSmartCut = () => {
     const text = twitterText;
-    if (text.length <= 280) return;
+    const currentPoints = getTwitterLength(text);
+    if (currentPoints <= 280) return;
     
     // 文末のハッシュタグを分離する正規表現
     const hashtagRegex = /(?:\s*(?:#[^\s#]+))+$/g;
@@ -96,18 +128,20 @@ export default function NewPostPage() {
     }
     
     const ellipsis = '...';
-    const availableLength = 280 - hashtags.length - ellipsis.length;
+    const decorationPoints = getTwitterLength(hashtags) + getTwitterLength(ellipsis);
+    const availablePoints = 280 - decorationPoints;
     
-    if (availableLength <= 0) {
-      setTwitterText(text.substring(0, 280 - ellipsis.length) + ellipsis);
+    if (availablePoints <= 0) {
+      setTwitterText(truncateToTwitterLength(text, 280 - getTwitterLength(ellipsis)) + ellipsis);
     } else {
-      setTwitterText(mainBody.substring(0, availableLength) + ellipsis + hashtags);
+      const truncatedMain = truncateToTwitterLength(mainBody, availablePoints);
+      setTwitterText(truncatedMain + ellipsis + hashtags);
     }
     setIsTwitterEdited(true);
   };
 
   const handleAIShorten = async () => {
-    if (twitterText.length <= 280) return;
+    if (getTwitterLength(twitterText) <= 280) return;
     setIsShortening(true);
     setError(null);
     
@@ -237,8 +271,8 @@ export default function NewPostPage() {
     }
 
     // X (Twitter) の文字数制限チェック (最大280文字)
-    if (platforms.twitter && twitterText.length > 280) {
-      setError('X（旧Twitter）の投稿は280文字以内に収めてください。');
+    if (platforms.twitter && getTwitterLength(twitterText) > 280) {
+      setError('X（旧Twitter）の投稿は280文字（全角140文字）ポイント以内に収めてください。');
       return;
     }
 
@@ -803,7 +837,7 @@ export default function NewPostPage() {
                               共通本文と同期
                             </button>
                           )}
-                          {twitterText.length > 280 && (
+                          {getTwitterLength(twitterText) > 280 && (
                             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                               <button
                                 type="button"
@@ -826,10 +860,10 @@ export default function NewPostPage() {
                           )}
                           <span style={{ 
                             fontSize: '0.75rem', 
-                            color: twitterText.length > 280 ? '#f87171' : 'var(--text-muted)',
-                            fontWeight: twitterText.length > 280 ? 'bold' : 'normal'
+                            color: getTwitterLength(twitterText) > 280 ? '#f87171' : 'var(--text-muted)',
+                            fontWeight: getTwitterLength(twitterText) > 280 ? 'bold' : 'normal'
                           }}>
-                            {twitterText.length} / 280
+                            {getTwitterLength(twitterText)} / 280
                           </span>
                         </div>
                       </div>
@@ -841,7 +875,7 @@ export default function NewPostPage() {
                         style={{ 
                           minHeight: '100px', 
                           fontSize: '0.85rem',
-                          borderColor: twitterText.length > 280 ? 'rgba(239, 68, 68, 0.5)' : undefined
+                          borderColor: getTwitterLength(twitterText) > 280 ? 'rgba(239, 68, 68, 0.5)' : undefined
                         }}
                         disabled={isLoading}
                       />
