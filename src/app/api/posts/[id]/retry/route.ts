@@ -82,7 +82,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       result = await publishToTwitter(
         account.access_token,
         post.twitter_text || post.base_text,
-        post.image_url
+        post.image_url,
+        post.title
       );
     }
 

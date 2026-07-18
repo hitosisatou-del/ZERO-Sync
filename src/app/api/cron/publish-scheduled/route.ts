@@ -96,7 +96,8 @@ async function processScheduledPosts(request: NextRequest) {
             publishResult = await publishToTwitter(
               account.access_token,
               post.twitter_text || post.base_text,
-              post.image_url
+              post.image_url,
+              post.title
             );
           }
 

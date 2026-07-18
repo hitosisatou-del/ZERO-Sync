@@ -140,13 +140,36 @@ function autoAdjustTwitterText(text: string): string {
   }
 }
 
+// メッセージの先頭に日付またはタイトルを自動付与する関数
+function addDateToMessage(message: string, title: string | null): string {
+  // すでに先頭に 【 がある場合は、日付やタイトルが手動または自動で入っているとみなしてそのままにする
+  if (message.trim().startsWith('【')) {
+    return message;
+  }
+
+  // 1. タイトルが指定されている場合は、タイトルを接頭辞にする
+  if (title && title.trim()) {
+    return `【${title.trim()}】\n${message}`;
+  }
+
+  // 2. タイトルがない場合は、日本時間基準の本日の日付 (月/日) を自動付与
+  const now = new Date();
+  const jstOffset = 9 * 60 * 60 * 1000;
+  const jstDate = new Date(now.getTime() + jstOffset);
+  const month = jstDate.getUTCMonth() + 1;
+  const date = jstDate.getUTCDate();
+  
+  return `【${month}/${date}の投稿】\n${message}`;
+}
+
 /**
  * X (旧Twitter) へ投稿を公開します
  */
 export async function publishToTwitter(
   accessTokenEncrypted: string,
   message: string,
-  imageUrl: string | null
+  imageUrl: string | null,
+  title: string | null = null
 ): Promise<PublishResult> {
   // 1. データベースからアカウント情報の取得およびトークンの更新
   let decryptedToken = '';
@@ -167,8 +190,11 @@ export async function publishToTwitter(
     };
   }
 
+  // タイトルまたは本日日付の自動付与
+  const messageWithDate = addDateToMessage(message, title);
+
   // 文字数を最大280ポイントに自動調整
-  const adjustedMessage = autoAdjustTwitterText(message);
+  const adjustedMessage = autoAdjustTwitterText(messageWithDate);
 
   // 2. 実APIとモックの分岐
   const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');

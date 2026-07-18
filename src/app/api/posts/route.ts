@@ -109,7 +109,8 @@ export async function POST(request: NextRequest) {
           const result = await publishToTwitter(
             account.access_token,
             twitter_text || base_text,
-            image_url
+            image_url,
+            title
           );
           await DBService.updatePostResult(post.id, 'twitter', result);
         }
