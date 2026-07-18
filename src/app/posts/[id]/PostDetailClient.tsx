@@ -32,6 +32,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
       lower.includes('expiration has passed') ||
       lower.includes('invalid oauth access token') ||
       lower.includes('code: 190') ||
+      lower.includes('unauthorized') ||
       lower.includes('期限切れ') ||
       lower.includes('再連携') ||
       lower.includes('連携アカウント情報が見つかりません') ||
@@ -45,7 +46,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!window.confirm('本当にこの投稿を削除しますか？\n（管理画面の履歴およびFacebook・Googleビジネスプロフィールの投稿が削除されます。Instagramは削除されません）')) {
+    if (!window.confirm('本当にこの投稿を削除しますか？\n（管理画面の履歴およびFacebook・X (旧Twitter)・Googleビジネスプロフィールの投稿が削除されます。Instagramは削除されません）')) {
       return;
     }
 
@@ -300,6 +301,17 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                   </p>
                 </div>
               )}
+
+              {post.twitter_text && (
+                <div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e1e8ed', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
+                    <TwitterIcon size={14} /> X（旧Twitter）本文
+                  </span>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', whiteSpace: 'pre-wrap' }}>
+                    {post.twitter_text}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -476,7 +488,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
             </h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: 1.4 }}>
               管理画面の投稿履歴からこのデータを削除します。<br />
-              また、FacebookとGoogleの投稿も自動的に連動削除されます。（※Instagramは仕様上、連動削除できません）
+              また、Facebook、X (旧Twitter)、Googleの投稿も自動的に連動削除されます。（※Instagramは仕様上、連動削除できません）
             </p>
             <button
               onClick={handleDelete}

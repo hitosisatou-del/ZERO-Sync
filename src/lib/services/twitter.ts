@@ -1,9 +1,87 @@
-import { decrypt } from '../crypto';
+import { decrypt, encrypt } from '../crypto';
+import { DBService } from './db';
 
 export interface PublishResult {
   status: 'success' | 'failed';
   external_post_id?: string;
   error_message?: string;
+}
+
+/**
+ * X (旧Twitter) アクセストークンの自動更新処理
+ */
+async function getFreshTwitterAccessToken(account: any): Promise<string> {
+  const decryptedAccessToken = decrypt(account.access_token);
+  
+  const isDummyToken = decryptedAccessToken === 'encrypted_dummy_token' || decryptedAccessToken.includes('dummy');
+  const isDummyConfig = 
+    process.env.TWITTER_CLIENT_ID?.includes('dummy') || 
+    !process.env.TWITTER_CLIENT_ID;
+    
+  if (isDummyToken || isDummyConfig) {
+    return decryptedAccessToken;
+  }
+  
+  // トークンの期限が5分以内に切れるか確認
+  const expiresAt = account.token_expires_at ? new Date(account.token_expires_at).getTime() : 0;
+  const now = Date.now();
+  
+  if (expiresAt > now + 5 * 60 * 1000) {
+    return decryptedAccessToken;
+  }
+  
+  // 期限切れの場合、リフレッシュトークンを使用して更新
+  if (!account.refresh_token) {
+    const errorMsg = 'Xアクセストークンが期限切れで、リフレッシュトークンがありません。アカウントを再連携してください。';
+    await DBService.markAccountInvalid('twitter', errorMsg);
+    throw new Error(errorMsg);
+  }
+  
+  const decryptedRefreshToken = decrypt(account.refresh_token);
+  const clientId = process.env.TWITTER_CLIENT_ID;
+  const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+  
+  if (!clientId || !clientSecret) {
+    throw new Error('X連携用のクライアントIDまたはクライアントシークレットが設定されていません。');
+  }
+  
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  const response = await fetch('https://api.twitter.com/2/oauth2/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${basicAuth}`,
+    },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: decryptedRefreshToken,
+      client_id: clientId,
+    }),
+  });
+  
+  const data = await response.json();
+  if (!response.ok || data.error) {
+    const errorMsg = `Xアクセストークンの更新に失敗しました: ${data.error_description || data.error}`;
+    await DBService.markAccountInvalid('twitter', errorMsg);
+    throw new Error(errorMsg);
+  }
+  
+  const newAccessToken = data.access_token;
+  const newRefreshToken = data.refresh_token;
+  const newExpiresIn = data.expires_in;
+  const newExpiresAt = newExpiresIn ? new Date(Date.now() + newExpiresIn * 1000).toISOString() : null;
+  
+  // 新しいアクセストークン（およびもし返ってきたら新しいリフレッシュトークン）をデータベースに保存
+  await DBService.saveConnectedAccount({
+    platform: 'twitter',
+    account_name: account.account_name,
+    external_account_id: account.external_account_id,
+    access_token: encrypt(newAccessToken),
+    refresh_token: newRefreshToken ? encrypt(newRefreshToken) : account.refresh_token,
+    token_expires_at: newExpiresAt,
+  });
+  
+  return newAccessToken;
 }
 
 /**
@@ -14,14 +92,22 @@ export async function publishToTwitter(
   message: string,
   imageUrl: string | null
 ): Promise<PublishResult> {
-  // 1. トークンの復号化
+  // 1. データベースからアカウント情報の取得およびトークンの更新
   let decryptedToken = '';
   try {
-    decryptedToken = decrypt(accessTokenEncrypted);
-  } catch (e) {
+    const accounts = await DBService.getConnectedAccounts();
+    const account = accounts.find((a) => a.platform === 'twitter');
+    if (!account) {
+      return {
+        status: 'failed',
+        error_message: 'X (旧Twitter) の連携アカウント情報が見つかりません。',
+      };
+    }
+    decryptedToken = await getFreshTwitterAccessToken(account);
+  } catch (err: any) {
     return {
       status: 'failed',
-      error_message: 'アクセス権限の復号化に失敗しました。トークンが無効である可能性があります。',
+      error_message: err.message || 'X (旧Twitter) のアクセストークンの取得・更新に失敗しました。',
     };
   }
 
@@ -156,13 +242,22 @@ export async function deleteFromTwitter(
   accessTokenEncrypted: string,
   externalTweetId: string
 ): Promise<{ status: 'success' | 'failed'; error_message?: string }> {
+  // 1. データベースからアカウント情報の取得およびトークンの更新
   let decryptedToken = '';
   try {
-    decryptedToken = decrypt(accessTokenEncrypted);
-  } catch (e) {
+    const accounts = await DBService.getConnectedAccounts();
+    const account = accounts.find((a) => a.platform === 'twitter');
+    if (!account) {
+      return {
+        status: 'failed',
+        error_message: 'X (旧Twitter) の連携アカウント情報が見つかりません。',
+      };
+    }
+    decryptedToken = await getFreshTwitterAccessToken(account);
+  } catch (err: any) {
     return {
       status: 'failed',
-      error_message: 'アクセス権限の復号化に失敗しました。',
+      error_message: err.message || 'X (旧Twitter) のアクセストークンの取得・更新に失敗しました。',
     };
   }
 

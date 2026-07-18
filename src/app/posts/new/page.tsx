@@ -57,6 +57,7 @@ export default function NewPostPage() {
   
   // AI生成モーダルの開閉状態
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isShortening, setIsShortening] = useState(false);
 
   // 共通本文が変更されたときに個別本文を同期 (編集されていない場合のみ)
   useEffect(() => {
@@ -74,6 +75,62 @@ export default function NewPostPage() {
     // もし切り替えたものが有効化され、かつ現在のプレビュー対象が別のものである場合、そちらに切り替え
     if (updated[key]) {
       setPreviewPlatform(key);
+    }
+  };
+
+  // X（旧Twitter）向け自動短縮処理
+  const handleSmartCut = () => {
+    const text = twitterText;
+    if (text.length <= 280) return;
+    
+    // 文末のハッシュタグを分離する正規表現
+    const hashtagRegex = /(?:\s*(?:#[^\s#]+))+$/g;
+    const match = text.match(hashtagRegex);
+    
+    let hashtags = '';
+    let mainBody = text;
+    
+    if (match) {
+      hashtags = match[0];
+      mainBody = text.substring(0, text.length - hashtags.length);
+    }
+    
+    const ellipsis = '...';
+    const availableLength = 280 - hashtags.length - ellipsis.length;
+    
+    if (availableLength <= 0) {
+      setTwitterText(text.substring(0, 280 - ellipsis.length) + ellipsis);
+    } else {
+      setTwitterText(mainBody.substring(0, availableLength) + ellipsis + hashtags);
+    }
+    setIsTwitterEdited(true);
+  };
+
+  const handleAIShorten = async () => {
+    if (twitterText.length <= 280) return;
+    setIsShortening(true);
+    setError(null);
+    
+    try {
+      const res = await fetch('/api/ai/shorten', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: twitterText }),
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'AI要約の実行中にエラーが発生しました。');
+      }
+      
+      setTwitterText(data.text);
+      setIsTwitterEdited(true);
+    } catch (err: any) {
+      setError(`AI短縮エラー: ${err.message}`);
+    } finally {
+      setIsShortening(false);
     }
   };
 
@@ -736,7 +793,7 @@ export default function NewPostPage() {
                         <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#e1e8ed', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <TwitterIcon size={14} /> X（旧Twitter）用
                         </span>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                           {isTwitterEdited && (
                             <button
                               type="button"
@@ -745,6 +802,27 @@ export default function NewPostPage() {
                             >
                               共通本文と同期
                             </button>
+                          )}
+                          {twitterText.length > 280 && (
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={handleSmartCut}
+                                style={{ background: 'none', border: 'none', color: '#60a5fa', fontSize: '0.75rem', cursor: 'pointer' }}
+                                title="文末のハッシュタグを残したまま、本文を切り詰めます"
+                              >
+                                ✂️ カット
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleAIShorten}
+                                disabled={isShortening}
+                                style={{ background: 'none', border: 'none', color: '#a78bfa', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.15rem' }}
+                                title="AIを使って280文字以内に要約・短縮します"
+                              >
+                                {isShortening ? <Loader2 size={10} className="spin-animation" /> : '✨ AI短縮'}
+                              </button>
+                            </div>
                           )}
                           <span style={{ 
                             fontSize: '0.75rem', 
