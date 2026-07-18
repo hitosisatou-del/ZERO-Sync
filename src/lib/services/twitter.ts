@@ -84,6 +84,62 @@ async function getFreshTwitterAccessToken(account: any): Promise<string> {
   return newAccessToken;
 }
 
+// X (Twitter) の文字数（ポイント数）をカウントする関数 (全角=2, 半角=1, URL一律=23)
+function getTwitterLength(text: string): number {
+  if (!text) return 0;
+  const urlRegex = /https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+  const processedText = text.replace(urlRegex, 'x'.repeat(23));
+  let length = 0;
+  for (const char of processedText) {
+    const code = char.charCodeAt(0);
+    if (code <= 0x007f) {
+      length += 1;
+    } else {
+      length += 2;
+    }
+  }
+  return length;
+}
+
+// 指定されたポイント数以下になるまで文字列を末尾から削る関数
+function truncateToTwitterLength(text: string, maxPoints: number): string {
+  let result = text;
+  while (getTwitterLength(result) > maxPoints && result.length > 0) {
+    // 末尾からサロゲートペアを考慮して1文字削る
+    result = [...result].slice(0, -1).join('');
+  }
+  return result;
+}
+
+// X (Twitter) 用にテキストを280ポイント以下に自動調整（スマートカット）する関数
+function autoAdjustTwitterText(text: string): string {
+  if (getTwitterLength(text) <= 280) {
+    return text;
+  }
+  
+  const hashtagRegex = /(?:\s*(?:#[^\s#]+))+$/g;
+  const match = text.match(hashtagRegex);
+  
+  let hashtags = '';
+  let mainBody = text;
+  
+  if (match) {
+    hashtags = match[0];
+    mainBody = text.substring(0, text.length - hashtags.length);
+  }
+  
+  const ellipsis = '...';
+  const decorationPoints = getTwitterLength(hashtags) + getTwitterLength(ellipsis);
+  const availablePoints = 280 - decorationPoints;
+  
+  if (availablePoints <= 0) {
+    return truncateToTwitterLength(text, 280 - getTwitterLength(ellipsis)) + ellipsis;
+  } else {
+    const truncatedMain = truncateToTwitterLength(mainBody, availablePoints);
+    return truncatedMain + ellipsis + hashtags;
+  }
+}
+
 /**
  * X (旧Twitter) へ投稿を公開します
  */
@@ -110,6 +166,9 @@ export async function publishToTwitter(
       error_message: err.message || 'X (旧Twitter) のアクセストークンの取得・更新に失敗しました。',
     };
   }
+
+  // 文字数を最大280ポイントに自動調整
+  const adjustedMessage = autoAdjustTwitterText(message);
 
   // 2. 実APIとモックの分岐
   const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
@@ -195,7 +254,7 @@ export async function publishToTwitter(
     }
 
     const payload: Record<string, any> = {
-      text: message,
+      text: adjustedMessage,
     };
 
     if (mediaIds.length > 0) {
