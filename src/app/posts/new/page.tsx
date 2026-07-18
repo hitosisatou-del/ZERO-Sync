@@ -613,12 +613,12 @@ export default function NewPostPage() {
                 padding: '1rem',
                 borderRadius: 'var(--radius-md)',
                 backgroundColor: 'rgba(255,255,255,0.02)',
-                border: '1px solid ' + (platforms.twitter ? 'rgba(255, 255, 255, 0.2)' : 'var(--border-color)'),
+                border: '1px solid ' + (platforms.twitter ? 'rgba(29, 161, 242, 0.2)' : 'var(--border-color)'),
                 cursor: 'pointer'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span style={{
-                    color: platforms.twitter ? '#fff' : 'var(--text-muted)',
+                    color: platforms.twitter ? 'var(--color-twitter)' : 'var(--text-muted)',
                     display: 'flex',
                     alignItems: 'center'
                   }}>
@@ -633,7 +633,7 @@ export default function NewPostPage() {
                   type="checkbox"
                   checked={platforms.twitter}
                   onChange={() => handlePlatformToggle('twitter')}
-                  style={{ width: '18px', height: '18px', accentColor: '#1DA1F2' }}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--color-twitter)' }}
                   disabled={isLoading}
                 />
               </label>
@@ -788,9 +788,9 @@ export default function NewPostPage() {
 
                   {/* X (旧Twitter) 本文 */}
                   {platforms.twitter && (
-                    <div style={{ borderLeft: '3px solid #e1e8ed', paddingLeft: '1rem' }}>
+                    <div style={{ borderLeft: '3px solid var(--color-twitter)', paddingLeft: '1rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#e1e8ed', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-twitter)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <TwitterIcon size={14} /> X（旧Twitter）用
                         </span>
                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -921,8 +921,8 @@ export default function NewPostPage() {
                         padding: '0.35rem 0.75rem',
                         fontSize: '0.75rem',
                         borderRadius: 'var(--radius-sm)',
-                        border: '1px solid ' + (previewPlatform === 'twitter' ? '#fff' : 'var(--border-color)'),
-                        background: previewPlatform === 'twitter' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                        border: '1px solid ' + (previewPlatform === 'twitter' ? 'var(--color-twitter)' : 'var(--border-color)'),
+                        background: previewPlatform === 'twitter' ? 'rgba(29, 161, 242, 0.1)' : 'transparent',
                         color: previewPlatform === 'twitter' ? '#fff' : 'var(--text-muted)',
                         cursor: 'pointer'
                       }}
