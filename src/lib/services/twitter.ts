@@ -383,3 +383,61 @@ export async function deleteFromTwitter(
     };
   }
 }
+
+/**
+ * X (旧Twitter) の投稿メトリクス（いいね数など）を取得します
+ */
+export async function getTwitterMetrics(
+  accessTokenEncrypted: string,
+  externalTweetId: string
+): Promise<{ likes: number; retweets: number; replies: number; impressions: number }> {
+  let decryptedToken = '';
+  try {
+    const accounts = await DBService.getConnectedAccounts();
+    const account = accounts.find((a) => a.platform === 'twitter');
+    if (!account) throw new Error('Account not found');
+    decryptedToken = await getFreshTwitterAccessToken(account);
+  } catch (err) {
+    return { likes: 0, retweets: 0, replies: 0, impressions: 0 };
+  }
+
+  const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
+  const isDummyConfig = 
+    process.env.TWITTER_CLIENT_ID?.includes('dummy') || 
+    !process.env.TWITTER_CLIENT_ID;
+
+  if (isDummyToken || isDummyConfig) {
+    return {
+      likes: Math.floor(Math.random() * 50) + 5,
+      retweets: Math.floor(Math.random() * 10) + 1,
+      replies: Math.floor(Math.random() * 5),
+      impressions: Math.floor(Math.random() * 500) + 100,
+    };
+  }
+
+  try {
+    const url = `https://api.twitter.com/2/tweets/${externalTweetId}?tweet.fields=public_metrics`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${decryptedToken}`,
+      },
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.data) {
+      console.error('X Metrics API Error:', data);
+      return { likes: 0, retweets: 0, replies: 0, impressions: 0 };
+    }
+
+    const metrics = data.data.public_metrics || {};
+    return {
+      likes: metrics.like_count || 0,
+      retweets: metrics.retweet_count || 0,
+      replies: metrics.reply_count || 0,
+      impressions: metrics.impression_count || 0,
+    };
+  } catch (err) {
+    console.error('Error fetching X metrics:', err);
+    return { likes: 0, retweets: 0, replies: 0, impressions: 0 };
+  }
+}

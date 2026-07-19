@@ -125,3 +125,49 @@ export async function publishToInstagram(
   }
 }
 
+/**
+ * Instagram の投稿メトリクス（いいね数・コメント数）を取得します
+ */
+export async function getInstagramMetrics(
+  accessTokenEncrypted: string,
+  externalMediaId: string
+): Promise<{ likes: number; comments: number }> {
+  let decryptedToken = '';
+  try {
+    decryptedToken = decrypt(accessTokenEncrypted);
+  } catch (e) {
+    return { likes: 0, comments: 0 };
+  }
+
+  const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
+  const isDummyConfig = 
+    process.env.META_APP_ID?.includes('dummy') || 
+    !process.env.META_APP_ID;
+
+  if (isDummyToken || isDummyConfig) {
+    return {
+      likes: Math.floor(Math.random() * 80) + 10,
+      comments: Math.floor(Math.random() * 15),
+    };
+  }
+
+  try {
+    const url = `https://graph.facebook.com/v20.0/${externalMediaId}?fields=like_count,comments_count&access_token=${decryptedToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      console.error('Instagram Metrics Error:', data.error);
+      return { likes: 0, comments: 0 };
+    }
+
+    return {
+      likes: data.like_count || 0,
+      comments: data.comments_count || 0,
+    };
+  } catch (err) {
+    console.error('Error fetching Instagram metrics:', err);
+    return { likes: 0, comments: 0 };
+  }
+}
+

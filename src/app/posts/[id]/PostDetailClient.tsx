@@ -45,6 +45,33 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [metrics, setMetrics] = useState<Record<string, any> | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    const fetchMetrics = async () => {
+      const hasSuccess = results.some(r => r.status === 'success');
+      if (!hasSuccess) return;
+
+      setMetricsLoading(true);
+      try {
+        const res = await fetch(`/api/posts/${post.id}/metrics`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setMetrics(data.metrics);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching metrics:', err);
+      } finally {
+        setMetricsLoading(false);
+      }
+    };
+
+    fetchMetrics();
+  }, [post.id, results]);
+
   const handleDelete = async () => {
     if (!window.confirm('本当にこの投稿を削除しますか？\n（管理画面の履歴およびFacebook・X (旧Twitter)・Googleビジネスプロフィールの投稿が削除されます。Instagramは削除されません）')) {
       return;
@@ -385,6 +412,82 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                         <code style={{ background: 'rgba(255,255,255,0.05)', padding: '0.15rem 0.35rem', borderRadius: '4px' }}>
                           {result.external_post_id}
                         </code>
+                      </div>
+                    )}
+
+                    {/* メトリクス（反響）表示 */}
+                    {isSuccess && (
+                      <div style={{
+                        marginTop: '0.5rem',
+                        padding: '0.65rem 0.75rem',
+                        borderRadius: 'var(--radius-sm)',
+                        backgroundColor: 'rgba(255,255,255,0.02)',
+                        border: '1px dashed var(--border-color)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.35rem'
+                      }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span>📊 配信の反響（リアルタイム）</span>
+                          {metricsLoading && <Loader2 size={10} className="spin-animation" />}
+                        </div>
+                        {metricsLoading && !metrics ? (
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>データを取得中...</div>
+                        ) : metrics && metrics[result.platform] ? (
+                          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            {result.platform === 'twitter' && (
+                              <>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  ❤️ <strong>{metrics.twitter.likes || 0}</strong> いいね
+                                </span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  🔁 <strong>{metrics.twitter.retweets || 0}</strong> リポスト
+                                </span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  💬 <strong>{metrics.twitter.replies || 0}</strong> 返信
+                                </span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  👁️ <strong>{metrics.twitter.impressions || 0}</strong> 表示
+                                </span>
+                              </>
+                            )}
+                            {result.platform === 'instagram' && (
+                              <>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  ❤️ <strong>{metrics.instagram.likes || 0}</strong> いいね
+                                </span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  💬 <strong>{metrics.instagram.comments || 0}</strong> コメント
+                                </span>
+                              </>
+                            )}
+                            {result.platform === 'facebook' && (
+                              <>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  👍 <strong>{metrics.facebook.likes || 0}</strong> リアクション
+                                </span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  💬 <strong>{metrics.facebook.comments || 0}</strong> コメント
+                                </span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  🔄 <strong>{metrics.facebook.shares || 0}</strong> シェア
+                                </span>
+                              </>
+                            )}
+                            {result.platform === 'google_business_profile' && (
+                              <>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  👁️ <strong>{metrics.google_business_profile.views || 0}</strong> 表示
+                                </span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  🖱️ <strong>{metrics.google_business_profile.clicks || 0}</strong> クリック
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>反響データはありません。</div>
+                        )}
                       </div>
                     )}
 

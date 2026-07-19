@@ -161,3 +161,51 @@ export async function deleteFromFacebook(
   }
 }
 
+/**
+ * Facebook の投稿メトリクス（いいね数・コメント数・シェア数）を取得します
+ */
+export async function getFacebookMetrics(
+  accessTokenEncrypted: string,
+  externalPostId: string
+): Promise<{ likes: number; comments: number; shares: number }> {
+  let decryptedToken = '';
+  try {
+    decryptedToken = decrypt(accessTokenEncrypted);
+  } catch (e) {
+    return { likes: 0, comments: 0, shares: 0 };
+  }
+
+  const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
+  const isDummyConfig = 
+    process.env.META_APP_ID?.includes('dummy') || 
+    !process.env.META_APP_ID;
+
+  if (isDummyToken || isDummyConfig) {
+    return {
+      likes: Math.floor(Math.random() * 60) + 5,
+      comments: Math.floor(Math.random() * 10),
+      shares: Math.floor(Math.random() * 5),
+    };
+  }
+
+  try {
+    const url = `https://graph.facebook.com/v20.0/${externalPostId}?fields=reactions.summary(true).limit(0),comments.summary(true).limit(0),shares&access_token=${decryptedToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      console.error('Facebook Metrics Error:', data.error);
+      return { likes: 0, comments: 0, shares: 0 };
+    }
+
+    return {
+      likes: data.reactions?.summary?.total_count || 0,
+      comments: data.comments?.summary?.total_count || 0,
+      shares: data.shares?.count || 0,
+    };
+  } catch (err) {
+    console.error('Error fetching Facebook metrics:', err);
+    return { likes: 0, comments: 0, shares: 0 };
+  }
+}
+
