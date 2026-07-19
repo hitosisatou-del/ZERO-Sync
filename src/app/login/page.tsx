@@ -52,8 +52,7 @@ export default function LoginPage() {
           });
           
           if (res.ok) {
-            router.push('/');
-            router.refresh();
+            window.location.href = '/';
           } else {
             setError('セッションの作成に失敗しました。');
             setIsLoading(false);
@@ -91,8 +90,7 @@ export default function LoginPage() {
         throw new Error(data.error || 'セッションの確立に失敗しました。');
       }
 
-      router.push('/');
-      router.refresh();
+      window.location.href = '/';
     } catch (err: any) {
       console.error('Google Login error:', err);
       let friendlyMessage = err.message || 'ログイン中にエラーが発生しました。';
