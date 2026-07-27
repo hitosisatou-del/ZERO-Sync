@@ -128,6 +128,13 @@ export async function publishToGoogleBusiness(
   try {
     const accounts = await DBService.getConnectedAccounts();
     const account = accounts.find((a) => a.platform === 'google_business_profile');
+
+    // GMBのスパム防止ポリシー（ハッシュタグ過剰使用によるREJECTED）を回避するため、
+    // 送信テキストから自動的にすべてのハッシュタグを取り除きます。
+    const cleanSummary = summary
+      .replace(/#[^\s#]+/g, '')
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .trim();
     if (!account) {
       return {
         status: 'failed',
@@ -203,7 +210,7 @@ export async function publishToGoogleBusiness(
     
     const postBody: Record<string, any> = {
       languageCode: 'ja-JP',
-      summary: summary,
+      summary: cleanSummary,
       topicType: 'STANDARD',
     };
 
