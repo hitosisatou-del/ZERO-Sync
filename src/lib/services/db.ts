@@ -464,7 +464,11 @@ export class DBService {
       if (result) {
         result.status = updateData.status;
         result.external_post_id = updateData.external_post_id !== undefined ? updateData.external_post_id : result.external_post_id;
-        result.error_message = updateData.error_message !== undefined ? updateData.error_message : result.error_message;
+        if (updateData.status === 'success') {
+          result.error_message = null;
+        } else {
+          result.error_message = updateData.error_message !== undefined ? updateData.error_message : result.error_message;
+        }
         result.updated_at = nowStr;
       } else {
         mockPostResults.push({
@@ -473,7 +477,7 @@ export class DBService {
           platform,
           status: updateData.status,
           external_post_id: updateData.external_post_id || null,
-          error_message: updateData.error_message || null,
+          error_message: updateData.status === 'success' ? null : (updateData.error_message || null),
           created_at: nowStr,
           updated_at: nowStr,
         });
@@ -494,7 +498,9 @@ export class DBService {
       if (updateData.external_post_id !== undefined) {
         updateObj[`results.${platform}.external_post_id`] = updateData.external_post_id;
       }
-      if (updateData.error_message !== undefined) {
+      if (updateData.status === 'success') {
+        updateObj[`results.${platform}.error_message`] = null;
+      } else if (updateData.error_message !== undefined) {
         updateObj[`results.${platform}.error_message`] = updateData.error_message;
       }
 
@@ -508,7 +514,11 @@ export class DBService {
       if (result) {
         result.status = updateData.status;
         result.external_post_id = updateData.external_post_id !== undefined ? updateData.external_post_id : result.external_post_id;
-        result.error_message = updateData.error_message !== undefined ? updateData.error_message : result.error_message;
+        if (updateData.status === 'success') {
+          result.error_message = null;
+        } else {
+          result.error_message = updateData.error_message !== undefined ? updateData.error_message : result.error_message;
+        }
         result.updated_at = nowStr;
       }
     }

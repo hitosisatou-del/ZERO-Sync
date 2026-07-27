@@ -60,6 +60,15 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
           const data = await res.json();
           if (data.success) {
             setMetrics(data.metrics);
+            
+            // Google側で非同期に拒否(REJECTED)されていた場合、UIの表示ステータスも即時に「失敗」に更新する
+            if (data.metrics?.google_business_profile?.state === 'REJECTED') {
+              setResults(prev => prev.map(r => r.platform === 'google_business_profile' && r.status === 'success' ? {
+                ...r,
+                status: 'failed',
+                error_message: 'Googleビジネスプロフィールにより投稿が拒否（REJECTED）されました。画像またはコンテンツのポリシー違反が原因の可能性があります。'
+              } : r));
+            }
           }
         }
       } catch (err) {
@@ -70,7 +79,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
     };
 
     fetchMetrics();
-  }, [post.id, results]);
+  }, [post.id]);
 
   const handleDelete = async () => {
     if (!window.confirm('本当にこの投稿を削除しますか？\n（管理画面の履歴およびFacebook・X (旧Twitter)・Googleビジネスプロフィールの投稿が削除されます。Instagramは削除されません）')) {

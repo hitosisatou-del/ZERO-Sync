@@ -40,8 +40,28 @@ export async function GET(
       });
     }
 
-    // すでに通常のURLの場合はそのURLへリダイレクト
-    return NextResponse.redirect(imageUrl);
+    // 通常のURLの場合はフェッチしてプロキシする
+    try {
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        console.error(`Failed to fetch original image from URL: ${imageUrl}. HTTP Status: ${imageResponse.status}`);
+        return new Response('Failed to fetch original image', { status: imageResponse.status });
+      }
+      const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+      const arrayBuffer = await imageResponse.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      return new Response(buffer, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=86400, must-revalidate',
+        },
+      });
+    } catch (e) {
+      console.error('Error proxying external image:', e);
+      // エラー時のフォールバックとしてリダイレクト
+      return NextResponse.redirect(imageUrl);
+    }
   } catch (error: any) {
     console.error('Error serving image:', error);
     return new Response('Internal Server Error', { status: 500 });

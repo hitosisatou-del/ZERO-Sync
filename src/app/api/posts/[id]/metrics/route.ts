@@ -49,6 +49,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         } else if (res.platform === 'google_business_profile') {
           const m = await getGoogleBusinessPostMetrics(account.access_token, res.external_post_id);
           metrics.google_business_profile = m;
+          
+          // Google側で非同期に拒否（REJECTED）されていた場合は、DBのステータスを failed に同期する
+          if (m && m.state === 'REJECTED') {
+            await DBService.updatePostResult(postId, 'google_business_profile', {
+              status: 'failed',
+              error_message: 'Googleビジネスプロフィールにより投稿が拒否（REJECTED）されました。画像またはコンテンツのポリシー違反が原因の可能性があります。',
+            });
+          }
         }
       } catch (err) {
         console.error(`Error fetching metrics for ${res.platform}:`, err);
