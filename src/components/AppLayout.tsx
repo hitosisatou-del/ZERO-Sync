@@ -53,6 +53,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isLoginPage = pathname === '/login';
+  const isReportPage = pathname === '/report' || pathname === '/analytics';
 
   const [theme, setTheme] = useState<Theme>('midnight-cosmic');
   const [userRole, setUserRole] = useState<'admin' | 'editor' | null>(null);
@@ -153,6 +154,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
       icon: Settings,
     }] : []),
   ];
+
+  if (isReportPage) {
+    return (
+      <div className="app-container">
+        <main className="main-content" style={{ marginLeft: 0, padding: '2rem 2.5rem 4rem 2.5rem' }}>
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
@@ -298,47 +309,49 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
           {/* ユーザー情報表示 */}
           {userEmail && (
-            <div style={{ 
-              background: 'rgba(255,255,255,0.02)', 
-              border: '1px solid var(--border-color)',
-              padding: '0.75rem', 
-              borderRadius: 'var(--radius-md)',
-              fontSize: '0.8rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.25rem'
-            }}>
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>ログイン中:</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600, wordBreak: 'break-all' }}>{userEmail}</span>
-              <span style={{ 
-                color: userRole === 'admin' ? 'var(--accent-primary)' : '#fbbf24', 
-                fontWeight: 700,
-                marginTop: '0.25rem',
-                display: 'inline-flex',
-                alignItems: 'center',
+            <>
+              <div style={{ 
+                background: 'rgba(255,255,255,0.02)', 
+                border: '1px solid var(--border-color)',
+                padding: '0.75rem', 
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.8rem',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '0.25rem'
               }}>
-                ● {userRole === 'admin' ? '管理者権限' : '投稿担当者'}
-              </span>
-            </div>
-          )}
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>ログイン中:</span>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600, wordBreak: 'break-all' }}>{userEmail}</span>
+                <span style={{ 
+                  color: userRole === 'admin' ? 'var(--accent-primary)' : '#fbbf24', 
+                  fontWeight: 700,
+                  marginTop: '0.25rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}>
+                  ● {userRole === 'admin' ? '管理者権限' : '投稿担当者'}
+                </span>
+              </div>
 
-          <button
-            onClick={handleLogout}
-            className="btn btn-secondary"
-            style={{
-              width: '100%',
-              justifyContent: 'flex-start',
-              gap: '0.875rem',
-              padding: '0.875rem 1rem',
-              border: '1px solid transparent',
-              background: 'transparent',
-              color: 'var(--text-muted)'
-            }}
-          >
-            <LogOut size={18} />
-            <span>ログアウト</span>
-          </button>
+              <button
+                onClick={handleLogout}
+                className="btn btn-secondary"
+                style={{
+                  width: '100%',
+                  justifyContent: 'flex-start',
+                  gap: '0.875rem',
+                  padding: '0.875rem 1rem',
+                  border: '1px solid transparent',
+                  background: 'transparent',
+                  color: 'var(--text-muted)'
+                }}
+              >
+                <LogOut size={18} />
+                <span>ログアウト</span>
+              </button>
+            </>
+          )}
         </div>
       </aside>
 
