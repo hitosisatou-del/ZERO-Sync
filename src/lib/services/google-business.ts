@@ -107,21 +107,12 @@ export async function publishToGoogleBusiness(
     !process.env.GOOGLE_CLIENT_ID;
 
   if (isDummyToken || isDummyConfig) {
-    // モック投稿の実行 (85%の確率で成功)
+    // モック投稿の実行 (100%成功)
     await new Promise((resolve) => setTimeout(resolve, 1200)); // 配信シミュレーション
-    const success = Math.random() < 0.85;
-
-    if (success) {
-      return {
-        status: 'success',
-        external_post_id: `g_post_${Math.floor(Math.random() * 100000000)}`,
-      };
-    } else {
-      return {
-        status: 'failed',
-        error_message: 'Google My Business API Error: 403 Forbidden. The authenticated user does not have permission to manage the specified location or account is not verified.',
-      };
-    }
+    return {
+      status: 'success',
+      external_post_id: `g_post_${Math.floor(Math.random() * 100000000)}`,
+    };
   }
 
   // 2. 本物リクエストの実行

@@ -37,21 +37,12 @@ export async function publishToInstagram(
   }
 
   if (isDummyToken || isDummyConfig) {
-    // モック投稿の実行 (80%の確率で成功)
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // 配信シミュレーション (Instagramはコンテナ作成もあるので少し長め)
-    const success = Math.random() < 0.85;
-
-    if (success) {
-      return {
-        status: 'success',
-        external_post_id: `ig_media_${Math.floor(Math.random() * 100000000)}`,
-      };
-    } else {
-      return {
-        status: 'failed',
-        error_message: 'Instagram API Error (Code: 368): The action has been blocked because the image URL was unreachable or format is not supported (JPEG/PNG only).',
-      };
-    }
+    // モック投稿の実行 (100%成功)
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // 配信シミュレーション
+    return {
+      status: 'success',
+      external_post_id: `ig_media_${Math.floor(Math.random() * 100000000)}`,
+    };
   }
 
   // 3. 本物リクエストの実行

@@ -40,6 +40,17 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
       lower.includes('無効である可能性があります')
     );
   };
+  const formatDisplayErrorMessage = (msg?: string | null) => {
+    if (!msg) return '';
+    const lower = msg.toLowerCase();
+    if (lower.includes('duplicate content') || lower.includes('duplicate')) {
+      return 'X (旧Twitter) のスパム防止制限により、過去と同じ内容の投稿はできません。本文を少し変更して再投稿してください。';
+    }
+    if (lower.includes('daily tweet limit') || lower.includes('rate limit') || lower.includes('code: 453')) {
+      return 'X (旧Twitter) の1日の投稿上限（またはAPI利用制限）に達しました。時間をおいて再試行してください。';
+    }
+    return msg;
+  };
   const [results, setResults] = useState<PostResult[]>(initialResults);
   const [retryingPlatform, setRetryingPlatform] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -512,7 +523,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                       }}>
                         <strong>エラー原因:</strong>
                         <div style={{ marginTop: '0.25rem', wordBreak: 'break-all' }}>
-                          {result.error_message}
+                          {formatDisplayErrorMessage(result.error_message)}
                         </div>
                       </div>
                     )}

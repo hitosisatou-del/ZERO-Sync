@@ -36,21 +36,12 @@ export async function publishToFacebook(
     !process.env.META_APP_ID;
 
   if (isDummyToken || isDummyConfig) {
-    // モック投稿の実行 (80%の確率で成功)
+    // モック投稿の実行 (100%成功)
     await new Promise((resolve) => setTimeout(resolve, 1500)); // 配信シミュレーション
-    const success = Math.random() < 0.85;
-
-    if (success) {
-      return {
-        status: 'success',
-        external_post_id: `fb_post_${Math.floor(Math.random() * 100000000)}`,
-      };
-    } else {
-      return {
-        status: 'failed',
-        error_message: 'Facebook Graph API Error (Code: 190): Invalid OAuth access token - Expiration has passed or Page permissions have changed.',
-      };
-    }
+    return {
+      status: 'success',
+      external_post_id: `fb_post_${Math.floor(Math.random() * 100000000)}`,
+    };
   }
 
   // 3. 本物リクエストの実行

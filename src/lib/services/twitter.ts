@@ -163,6 +163,34 @@ function addDateToMessage(message: string, title: string | null): string {
 }
 
 /**
+ * X API の生エラーメッセージを分かりやすい日本語メッセージに変換します
+ */
+export function formatTwitterErrorMessage(rawError: string): string {
+  if (!rawError) return 'X (旧Twitter) API エラーが発生しました。';
+
+  const lower = rawError.toLowerCase();
+
+  if (lower.includes('duplicate content') || lower.includes('duplicate')) {
+    return 'X (旧Twitter) のスパム防止制限により、過去と同じ内容の投稿はできません。本文を少し変更して再投稿してください。';
+  }
+
+  if (lower.includes('daily tweet limit') || lower.includes('rate limit') || lower.includes('453')) {
+    return 'X (旧Twitter) の1日の投稿上限（またはAPI利用制限）に達しました。時間をおいて再試行してください。';
+  }
+
+  if (
+    lower.includes('could not authenticate') ||
+    lower.includes('invalid oauth access token') ||
+    lower.includes('token expired') ||
+    lower.includes('unauthorized')
+  ) {
+    return 'X (旧Twitter) のアクセストークンが期限切れ、または無効です。アカウント連携設定から再連携を行ってください。';
+  }
+
+  return rawError;
+}
+
+/**
  * X (旧Twitter) へ投稿を公開します
  */
 export async function publishToTwitter(
@@ -203,21 +231,12 @@ export async function publishToTwitter(
     !process.env.TWITTER_CLIENT_ID;
 
   if (isDummyToken || isDummyConfig) {
-    // モック投稿の実行 (85%の確率で成功)
+    // モック投稿の実行 (100%成功)
     await new Promise((resolve) => setTimeout(resolve, 1200)); // 配信シミュレーション
-    const success = Math.random() < 0.85;
-
-    if (success) {
-      return {
-        status: 'success',
-        external_post_id: `x_tweet_${Math.floor(Math.random() * 1000000000000)}`,
-      };
-    } else {
-      return {
-        status: 'failed',
-        error_message: 'X API Error (Code: 453): You cannot send messages to this user. Or daily tweet limit has been exceeded.',
-      };
-    }
+    return {
+      status: 'success',
+      external_post_id: `x_tweet_${Math.floor(Math.random() * 1000000000000)}`,
+    };
   }
 
   // 3. 本物のX API (v2) リクエストの実行
@@ -301,9 +320,10 @@ export async function publishToTwitter(
     const data = await response.json();
     if (!response.ok || data.errors) {
       console.error('X API Error:', data);
+      const rawMsg = data.detail || data.errors?.[0]?.message || 'X API v2 Error';
       return {
         status: 'failed',
-        error_message: data.detail || data.errors?.[0]?.message || 'X API v2 Error',
+        error_message: formatTwitterErrorMessage(rawMsg),
       };
     }
 
@@ -315,7 +335,7 @@ export async function publishToTwitter(
     console.error('X publish error:', error);
     return {
       status: 'failed',
-      error_message: error.message || 'X API connection failed.',
+      error_message: formatTwitterErrorMessage(error.message || 'X API connection failed.'),
     };
   }
 }
