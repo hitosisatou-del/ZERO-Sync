@@ -63,11 +63,22 @@ interface PostPerformance {
   engagementRate: string;
 }
 
+// タブの説明文
+const TAB_DESCRIPTIONS: Record<string, { title: string; desc: string }> = {
+  overall:       { title: 'SNS全体のまとめ',           desc: 'Google・Instagram・Facebook・X(Twitter) 全チャネルの集客数・反応数を1画面でまとめて確認できます。' },
+  posts_ranking: { title: '各投稿の効果ランキング',     desc: '過去に配信した投稿を「どれだけ多くの人に届いたか・反応されたか」の順に並べた一覧です。一番上が最も効果の高かった投稿です。' },
+  google:        { title: 'Googleマップ（MEO）の成果', desc: 'Googleマップで「都城ドライビングスクール」を検索・閲覧した人数や、ルート案内・電話などのアクション数を確認できます。' },
+  instagram:     { title: 'Instagramの成果',           desc: 'Instagramの投稿がどれだけの人に届いた（リーチ）か、いいね・コメント・保存などの反応をまとめています。' },
+  facebook:      { title: 'Facebookの成果',            desc: 'Facebookページの投稿・情報がどれだけの人に届いたか、リアクション（いいね等）やシェアの集計です。' },
+  twitter:       { title: 'X (Twitter) の成果',        desc: 'X(旧Twitter)の投稿インプレッション（表示回数）、いいね、リポスト（リツイート）の集計です。' },
+};
+
 export default function AnalyticsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('overall');
+  const [showGuide, setShowGuide] = useState(true);
 
   // APIデータ
   const [data, setData] = useState<{
@@ -179,7 +190,39 @@ export default function AnalyticsPage() {
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      
+
+      {/* 使い方ガイドバナー */}
+      {showGuide && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.06) 100%)',
+          border: '1px solid rgba(79, 70, 229, 0.25)',
+          borderRadius: '14px',
+          padding: '1.1rem 1.5rem',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '1rem',
+        }}>
+          <div style={{ fontSize: '1.5rem', flexShrink: 0 }}>📖</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.35rem', color: 'var(--accent-primary)' }}>このレポートの見方</div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.7 }}>
+              <strong>①タブを切り替える</strong>と、チャネルごとの詳細データを確認できます。<br />
+              <strong>②「SNS全体のまとめ」</strong>では全チャネルの総合成果、<strong>「各投稿の効果ランキング」</strong>では個別投稿の反響を比較できます。<br />
+              <strong>③各数値は過去30日間の自動集計データ</strong>です。
+            </p>
+          </div>
+          <button
+            onClick={() => setShowGuide(false)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-muted)', fontSize: '1.2rem', padding: '0 0.25rem',
+              flexShrink: 0, lineHeight: 1
+            }}
+            title="閉じる"
+          >✕</button>
+        </div>
+      )}
+
       {/* 1. ヘッダータイトル & 期間表示 */}
       <div className="analytics-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -200,52 +243,75 @@ export default function AnalyticsPage() {
       </div>
 
       {/* 2. メインナビゲーションタブ */}
-      <div className="analytics-tab-bar">
-        {[
-          { id: 'overall', label: '📊 全体統合サマリー', badge: '全チャネル' },
-          { id: 'posts_ranking', label: '🏆 みんなの投稿成果', badge: '効果重視' },
-          { id: 'google', label: '📍 Googleマップ', icon: GoogleBusinessIcon },
-          { id: 'instagram', label: '📸 Instagram', icon: InstagramIcon },
-          { id: 'facebook', label: '📘 Facebook', icon: FacebookIcon },
-          { id: 'twitter', label: '🐦 Twitter (X)', icon: TwitterIcon },
-        ].map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabType)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.65rem 1.15rem',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.88rem',
-                fontWeight: isActive ? 700 : 500,
-                background: isActive ? 'var(--bg-tertiary)' : 'transparent',
-                color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                border: isActive ? '1px solid var(--accent-primary)' : '1px solid transparent',
-                cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              <span>{tab.label}</span>
-              {tab.badge && (
-                <span style={{
-                  fontSize: '0.7rem',
-                  background: isActive ? 'var(--accent-gradient)' : 'rgba(255,255,255,0.06)',
-                  color: '#fff',
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: 'var(--radius-full)',
-                  fontWeight: 600
-                }}>
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="analytics-tab-bar">
+          {[
+            { id: 'overall',       label: '📊 SNS全体のまとめ',         badge: '全チャネル' },
+            { id: 'posts_ranking', label: '🏆 各投稿の効果ランキング',   badge: '効果順' },
+            { id: 'google',        label: '📍 Googleマップ',             icon: GoogleBusinessIcon },
+            { id: 'instagram',     label: '📸 Instagram',               icon: InstagramIcon },
+            { id: 'facebook',      label: '📘 Facebook',                icon: FacebookIcon },
+            { id: 'twitter',       label: '🐦 Twitter (X)',             icon: TwitterIcon },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.65rem 1.15rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.88rem',
+                  fontWeight: isActive ? 700 : 500,
+                  background: isActive ? 'var(--bg-tertiary)' : 'transparent',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span style={{
+                    fontSize: '0.7rem',
+                    background: isActive ? 'var(--accent-gradient)' : 'rgba(255,255,255,0.06)',
+                    color: '#fff',
+                    padding: '0.15rem 0.45rem',
+                    borderRadius: 'var(--radius-full)',
+                    fontWeight: 600
+                  }}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* タブの説明文 */}
+        <div style={{
+          background: 'rgba(79, 70, 229, 0.05)',
+          border: '1px solid rgba(79, 70, 229, 0.15)',
+          borderRadius: '10px',
+          padding: '0.75rem 1.1rem',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.6rem',
+        }}>
+          <HelpCircle size={15} style={{ color: 'var(--accent-primary)', marginTop: '1px', flexShrink: 0 }} />
+          <div>
+            <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--accent-primary)' }}>
+              {TAB_DESCRIPTIONS[activeTab]?.title}
+            </span>
+            <span style={{ fontSize: '0.83rem', color: 'var(--text-secondary)', marginLeft: '0.6rem' }}>
+              {TAB_DESCRIPTIONS[activeTab]?.desc}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* 3. タブコンテンツ判定 */}
