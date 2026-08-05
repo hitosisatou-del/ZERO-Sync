@@ -28,6 +28,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
+import AILoadingState from '@/components/AILoadingState';
 
 type TabType = 'overall' | 'google' | 'instagram' | 'facebook' | 'twitter' | 'posts_ranking';
 
@@ -102,12 +103,7 @@ export default function AnalyticsPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem' }}>
-        <Loader2 size={36} className="spin-animation-fast" style={{ color: 'var(--accent-primary)' }} />
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>全SNS・Googleマイビジネス集客パフォーマンスを集計中...</span>
-      </div>
-    );
+    return <AILoadingState />;
   }
 
   if (error || !data) {
