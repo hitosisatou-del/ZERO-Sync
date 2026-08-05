@@ -767,7 +767,59 @@ p {
 .report-mode {
   background: #f0f4f8;
   min-height: 100vh;
+  /* bodyから継承された白文字を強制的に上書き */
+  color: #0f172a !important;
 }
+
+.report-main {
+  background: linear-gradient(160deg, #eef2ff 0%, #f8faff 40%, #f0f9ff 100%) !important;
+  min-height: 100vh;
+  color: #0f172a !important;
+}
+
+/* カード内テキストを全てダーク色に強制 */
+.report-mode * {
+  color: inherit;
+}
+
+.report-mode .card,
+.report-mode .card * {
+  color: #0f172a;
+}
+
+/* テキストクラス別の色指定 */
+.report-mode [style*="color: var(--text-primary)"] {
+  color: #0f172a !important;
+}
+.report-mode [style*="color: var(--text-secondary)"] {
+  color: #334155 !important;
+}
+.report-mode [style*="color: var(--text-muted)"] {
+  color: #64748b !important;
+}
+
+/* KPIカードの数値を明示的に黒に */
+.report-mode .kpi-grid .card div {
+  color: #0f172a !important;
+}
+.report-mode .kpi-grid .card div span {
+  color: #475569 !important;
+}
+
+/* 前月比・トレンド色は維持 */
+.report-mode [style*="color: var(--color-success)"],
+.report-mode [style*="color: #10b981"] {
+  color: #059669 !important;
+}
+.report-mode [style*="color: var(--accent-primary)"],
+.report-mode [style*="color: #4f46e5"] {
+  color: #4f46e5 !important;
+}
+.report-mode [style*="color: #f59e0b"],
+.report-mode [style*="color: #fbbf24"] {
+  color: #d97706 !important;
+}
+
 
 .report-main {
   background: linear-gradient(160deg, #eef2ff 0%, #f8faff 40%, #f0f9ff 100%) !important;
