@@ -759,3 +759,214 @@ p {
   }
 }
 
+
+/* ==========================================================================
+   Report Mode — Clean Light Theme (職員向けレポート表示)
+   ========================================================================== */
+
+.report-mode {
+  background: #f0f4f8;
+  min-height: 100vh;
+}
+
+.report-main {
+  background: linear-gradient(160deg, #eef2ff 0%, #f8faff 40%, #f0f9ff 100%) !important;
+  min-height: 100vh;
+}
+
+/* CSS変数のレポートモード上書き */
+.report-mode {
+  --bg-primary:    #f8faff;
+  --bg-secondary:  #ffffff;
+  --bg-tertiary:   #eef2f9;
+  --text-primary:  #0f172a;
+  --text-secondary:#334155;
+  --text-muted:    #64748b;
+  --border-color:  rgba(15, 23, 42, 0.1);
+  --accent-primary:#4f46e5;
+  --accent-secondary:#7c3aed;
+  --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --accent-glow:   0 0 20px rgba(79, 70, 229, 0.15);
+  --nav-active-bg: rgba(79, 70, 229, 0.08);
+  --nav-active-border: rgba(79, 70, 229, 0.2);
+  --card-hover-border: rgba(79, 70, 229, 0.2);
+  --card-hover-glow: rgba(79, 70, 229, 0.06);
+  --card-hover-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
+  --glass-bg:      rgba(255, 255, 255, 0.9);
+  --glass-border:  rgba(15, 23, 42, 0.06);
+  --glass-shadow:  0 4px 24px rgba(15, 23, 42, 0.06);
+  --glow-color-1:  rgba(79, 70, 229, 0.04);
+  --glow-color-2:  rgba(124, 58, 237, 0.02);
+  --btn-shadow:    0 4px 15px rgba(79, 70, 229, 0.2);
+  --btn-shadow-hover: 0 6px 20px rgba(79, 70, 229, 0.3);
+}
+
+/* カードのライトテーマ */
+.report-mode .card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06) !important;
+  border-radius: 14px !important;
+}
+
+.report-mode .card:hover {
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.1) !important;
+  border-color: rgba(79, 70, 229, 0.2) !important;
+}
+
+/* ヘッダーエリア */
+.report-mode .analytics-header h1 {
+  color: #0f172a !important;
+}
+
+/* KPIカードのborderLeft装飾 */
+.report-mode .kpi-grid .card {
+  background: #ffffff !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.report-mode .kpi-grid .card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.06), transparent);
+  transform: translate(25px, -25px);
+  pointer-events: none;
+}
+
+/* タブバー */
+.report-mode .analytics-tab-bar {
+  background: rgba(255,255,255,0.7);
+  border-radius: 12px;
+  padding: 0.35rem !important;
+  border: 1px solid rgba(15,23,42,0.08) !important;
+  border-bottom: 1px solid rgba(15,23,42,0.08) !important;
+  gap: 0.25rem !important;
+  backdrop-filter: blur(8px);
+}
+
+.report-mode .analytics-tab-bar button {
+  border-radius: 8px !important;
+  color: #475569 !important;
+}
+
+.report-mode .analytics-tab-bar button[style*="var(--bg-tertiary)"] {
+  background: #4f46e5 !important;
+  color: #ffffff !important;
+  border-color: #4f46e5 !important;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* テーブル */
+.report-mode table {
+  color: #0f172a !important;
+}
+
+.report-mode thead tr {
+  background: #f8faff !important;
+  border-bottom: 2px solid rgba(79, 70, 229, 0.15) !important;
+}
+
+.report-mode thead th {
+  color: #475569 !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.report-mode tbody tr {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+}
+
+.report-mode tbody tr:hover {
+  background: rgba(79, 70, 229, 0.03) !important;
+}
+
+/* プログレスバートラック */
+.report-mode [style*="var(--bg-tertiary)"][style*="border-radius: var(--radius-full)"] {
+  background: #e2e8f0 !important;
+}
+
+/* SVGグラフの罫線 */
+.report-mode line[stroke="var(--border-color)"] {
+  stroke: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* ランキングカード（モバイル時） */
+.report-mode .report-table-wrapper tr {
+  background: #ffffff !important;
+  border: 1px solid rgba(15,23,42,0.08) !important;
+  box-shadow: 0 1px 4px rgba(15,23,42,0.04) !important;
+}
+
+.report-mode .report-table-wrapper td::before {
+  color: #94a3b8 !important;
+}
+
+/* No.1投稿ハイライトカード */
+.report-mode .card[style*="linear-gradient(135deg, rgba(99, 102, 241"] {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.04) 100%) !important;
+  border: 1px solid rgba(79, 70, 229, 0.2) !important;
+}
+
+/* AIローディング */
+.report-mode .ai-loading-container {
+  background: linear-gradient(160deg, #eef2ff, #f8faff);
+}
+
+.report-mode .ai-glow-bg {
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, rgba(124, 58, 237, 0.08) 50%, transparent 70%) !important;
+}
+
+.report-mode .ai-loading-card {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(79, 70, 229, 0.15) !important;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08), 0 0 30px rgba(79, 70, 229, 0.08) !important;
+}
+
+.report-mode .ai-title {
+  color: #0f172a !important;
+}
+
+.report-mode .ai-subtext {
+  color: #475569 !important;
+}
+
+.report-mode .ai-badge {
+  background: rgba(79, 70, 229, 0.1) !important;
+  border-color: rgba(79, 70, 229, 0.25) !important;
+  color: #4f46e5 !important;
+}
+
+.report-mode .ai-step-text {
+  color: #334155 !important;
+}
+
+.report-mode .chip {
+  color: #94a3b8 !important;
+}
+
+/* スクロールバー */
+.report-mode ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.report-mode ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+.report-mode ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* モバイル対応（report-mode内） */
+@media (max-width: 768px) {
+  .report-main {
+    padding: 1.25rem 1.25rem 3rem 1.25rem !important;
+  }
+}
+

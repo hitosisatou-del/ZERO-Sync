@@ -157,13 +157,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   if (isReportPage) {
     return (
-      <div className="app-container">
-        <main className="main-content" style={{ marginLeft: 0, padding: '2rem 2.5rem 4rem 2.5rem' }}>
+      <div className="app-container report-mode">
+        <main className="main-content report-main" style={{ marginLeft: 0, padding: '2rem 2.5rem 4rem 2.5rem' }}>
           {children}
         </main>
       </div>
     );
   }
+
 
   return (
     <div className="app-container">
