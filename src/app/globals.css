@@ -610,3 +610,152 @@ p {
   }
 }
 
+/* ==========================================================================
+   Analytics / Report Mobile Responsive Styles
+   ========================================================================== */
+
+/* タブのスクロール対応 */
+.analytics-tab-bar {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.analytics-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 投稿テーブルのモバイル対応: カードリストへ変換 */
+.report-table-wrapper {
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  /* レポートページのパディング調整（サイドバーなし） */
+  .report-fullpage {
+    padding: 1.25rem !important;
+  }
+
+  /* ヘッダー縦積み */
+  .analytics-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .analytics-header h1 {
+    font-size: 1.25rem !important;
+  }
+
+  /* KPIカード: 2列 */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* KPIカードの数字サイズ縮小 */
+  .kpi-grid .card > div:nth-child(2) {
+    font-size: 1.35rem !important;
+  }
+
+  /* チャートグリッドを縦積みに */
+  .responsive-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* SVGグラフの最小幅を削減 */
+  .analytics-svg-chart {
+    min-width: 300px !important;
+  }
+
+  /* タブのボタンを小さく */
+  .analytics-tab-bar button {
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* 投稿ランキングテーブル → カード表示 */
+  .report-table-wrapper table thead {
+    display: none;
+  }
+  .report-table-wrapper table,
+  .report-table-wrapper tbody,
+  .report-table-wrapper tr,
+  .report-table-wrapper td {
+    display: block;
+    width: 100%;
+  }
+  .report-table-wrapper tr {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.85rem;
+    padding: 0.85rem;
+    background: var(--bg-secondary);
+  }
+  .report-table-wrapper td {
+    padding: 0.3rem 0 !important;
+    border: none !important;
+  }
+  .report-table-wrapper td::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* No.1投稿ハイライトを縦積みに */
+  .top-post-flex {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+  .top-post-flex img {
+    width: 100% !important;
+    height: 160px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* KPIカードのメトリクス行を横スクロール */
+  .top-post-stats {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 1rem !important;
+  }
+
+  /* AIローディングカードのモバイル対応 */
+  .ai-loading-card {
+    padding: 2rem 1.5rem !important;
+    border-radius: 18px !important;
+  }
+  .ai-title {
+    font-size: 1.05rem !important;
+  }
+  .ai-subtext {
+    font-size: 0.8rem !important;
+  }
+  .ai-footer-chips {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* KPIカードを1列に */
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* タブラベルの絵文字のみ表示 or 全幅スクロール */
+  .analytics-header h1 span {
+    font-size: 1.1rem !important;
+  }
+}
+

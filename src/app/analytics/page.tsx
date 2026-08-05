@@ -181,7 +181,7 @@ export default function AnalyticsPage() {
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
       {/* 1. ヘッダータイトル & 期間表示 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="analytics-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.65rem', margin: 0, letterSpacing: '-0.02em' }}>
             <div style={{ background: 'var(--accent-gradient)', padding: '0.4rem', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -200,13 +200,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* 2. メインナビゲーションタブ */}
-      <div style={{
-        display: 'flex',
-        gap: '0.5rem',
-        borderBottom: '1px solid var(--border-color)',
-        paddingBottom: '0.5rem',
-        overflowX: 'auto'
-      }}>
+      <div className="analytics-tab-bar">
         {[
           { id: 'overall', label: '📊 全体統合サマリー', badge: '全チャネル' },
           { id: 'posts_ranking', label: '🏆 みんなの投稿成果', badge: '効果重視' },
@@ -260,7 +254,7 @@ export default function AnalyticsPage() {
       {activeTab === 'overall' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
           {/* KPI 4列カード */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+          <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
             <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--accent-primary)' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>全チャネル総インプレッション・PV</div>
               <div style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0.3rem 0' }}>
@@ -303,12 +297,12 @@ export default function AnalyticsPage() {
           </div>
 
           {/* 全体推移チャート ＆ チャネル内訳 */}
-          <div className="responsive-form-grid">
+          <div className="responsive-form-grid analytics-chart-grid">
             {/* チャート */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>過去30日間の全社集客・インプレッション推移</h3>
-              <div style={{ width: '100%', overflowX: 'auto', background: 'rgba(0,0,0,0.1)', borderRadius: 'var(--radius-md)', padding: '1rem 0.5rem' }}>
-                <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', minWidth: '450px', height: 'auto', display: 'block' }}>
+              <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: 'rgba(0,0,0,0.1)', borderRadius: 'var(--radius-md)', padding: '1rem 0.5rem' }}>
+                <svg viewBox={`0 0 ${width} ${height}`} className="analytics-svg-chart" style={{ width: '100%', minWidth: '300px', height: 'auto', display: 'block' }}>
                   <defs>
                     <linearGradient id="gradOverall" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.2" />
@@ -426,7 +420,7 @@ export default function AnalyticsPage() {
                 <span>👑 直近で最も集客・反響を生んだ「No.1 ベストパフォーマンス投稿」</span>
               </div>
 
-              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+              <div className="top-post-flex" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                 {topPost.image_url && (
                   <img
                     src={topPost.image_url}
@@ -441,7 +435,7 @@ export default function AnalyticsPage() {
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {topPost.base_text}
                   </p>
-                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                  <div className="top-post-stats" style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                     <div>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>合計リーチ / 閲覧数:</span>
                       <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-primary)' }}>{topPost.totalReach.toLocaleString()} 回</div>
@@ -470,7 +464,7 @@ export default function AnalyticsPage() {
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>全 {postPerformanceList.length} 件の投稿</span>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div className="report-table-wrapper">
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)' }}>
@@ -513,10 +507,10 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '1rem 0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      <td data-label="投稿日時" style={{ padding: '1rem 0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(post.created_at).toLocaleDateString('ja-JP')}
                       </td>
-                      <td style={{ padding: '1rem 0.5rem' }}>
+                      <td data-label="配信先" style={{ padding: '1rem 0.5rem' }}>
                         <div style={{ display: 'flex', gap: '0.35rem' }}>
                           {post.platformResults.map(r => (
                             <span key={r.platform} title={`${r.platform}: ${r.status}`}>
@@ -528,13 +522,13 @@ export default function AnalyticsPage() {
                           ))}
                         </div>
                       </td>
-                      <td style={{ padding: '1rem 0.5rem', fontWeight: 700 }}>
+                      <td data-label="総リーチ数" style={{ padding: '1rem 0.5rem', fontWeight: 700 }}>
                         {post.totalReach.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>PV/Reach</span>
                       </td>
-                      <td style={{ padding: '1rem 0.5rem', fontWeight: 700, color: '#10b981' }}>
+                      <td data-label="総反応数" style={{ padding: '1rem 0.5rem', fontWeight: 700, color: '#10b981' }}>
                         {post.totalEngagement.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>反響</span>
                       </td>
-                      <td style={{ padding: '1rem 0.5rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      <td data-label="主要反響" style={{ padding: '1rem 0.5rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                           {post.platformStats.instagram && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
