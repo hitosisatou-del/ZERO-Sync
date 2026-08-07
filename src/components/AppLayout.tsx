@@ -13,7 +13,8 @@ import {
   ShieldAlert,
   Menu,
   X,
-  BarChart3
+  BarChart3,
+  Sparkles
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -141,6 +142,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
       name: '新規投稿作成',
       path: '/posts/new',
       icon: PlusCircle,
+    },
+    {
+      name: 'AI 自動生成',
+      path: '/ai-post',
+      icon: Sparkles,
     },
     {
       name: '集客分析レポート',
