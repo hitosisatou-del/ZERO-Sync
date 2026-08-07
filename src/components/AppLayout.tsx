@@ -164,6 +164,28 @@ export default function AppLayout({ children }: AppLayoutProps) {
   if (isReportPage) {
     return (
       <div className="app-container report-mode">
+        {userRole && (
+          <div style={{ position: 'fixed', top: '1.5rem', left: '1.5rem', zIndex: 100 }}>
+            <Link href="/" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 1rem',
+              backgroundColor: 'var(--surface)',
+              color: 'var(--text-primary)',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              border: '1px solid var(--border)',
+              transition: 'all 0.2s ease',
+            }}>
+              <LayoutDashboard size={16} />
+              管理画面へ戻る
+            </Link>
+          </div>
+        )}
         <main className="main-content report-main" style={{ marginLeft: 0, padding: '2rem 2.5rem 4rem 2.5rem' }}>
           {children}
         </main>
