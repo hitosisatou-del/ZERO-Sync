@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
 import AIPostModal from '@/components/AIPostModal';
+import AILoadingState from '@/components/AILoadingState';
 
 // X (Twitter) の文字数（ポイント数）をカウントする関数 (全角=2, 半角=1, URL一律=23)
 export function getTwitterLength(text: string): number {
@@ -321,7 +322,6 @@ export default function NewPostPage() {
       router.refresh();
     } catch (err: any) {
       setError(err.message || '投稿処理中に予期しないエラーが発生しました。');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -1160,44 +1160,28 @@ export default function NewPostPage() {
         </div>
       </form>
 
-      {/* 全画面ローディングオーバーレイ */}
+      {/* 全画面AIローディングオーバーレイ */}
       {isLoading && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(9, 10, 15, 0.8)',
-          backdropFilter: 'blur(5px)',
+          position: 'fixed', top: 0, left: 0,
+          width: '100vw', height: '100vh',
+          background: 'rgba(5, 8, 18, 0.88)',
+          backdropFilter: 'blur(8px)',
           zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1.25rem',
-          color: '#fff'
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)',
-            padding: '2.5rem',
-            borderRadius: 'var(--radius-lg)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-            maxWidth: '90%',
-            width: '400px',
-            textAlign: 'center'
-          }}>
-            <Loader2 size={40} className="spin-animation-fast" style={{ color: 'var(--accent-primary)' }} />
-            <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>各SNSへ同時投稿を送信中...</span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              API接続と配信処理を行っています。<br />そのまましばらくお待ちください。
-            </span>
-          </div>
+          <AILoadingState
+            mainTitle="各SNSへ同時配信中..."
+            subTitle="API接続・配信処理を行っています。そのままお待ちください。"
+            badgeText="SNS PUBLISHING"
+            steps={[
+              '投稿データを最終検証中...',
+              'Instagram へ画像・テキストを送信中...',
+              'Facebook ページへ投稿を配信中...',
+              'X (Twitter) へツイートを送信中...',
+              'Google ビジネスプロフィールへ投稿中...',
+            ]}
+          />
         </div>
       )}
 

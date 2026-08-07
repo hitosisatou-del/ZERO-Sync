@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
       image_url,
       platforms, // Array<'instagram' | 'facebook' | 'google_business_profile' | 'twitter'>
       scheduled_at,
+      is_ai,
     } = body;
 
     if (!base_text) {
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
         link_url: link_url || null,
         image_url: image_url || null,
         scheduled_at: scheduled_at || null,
+        is_ai: is_ai || false,
       },
       platforms
     );

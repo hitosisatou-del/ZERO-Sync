@@ -7,6 +7,7 @@ import {
   AlertCircle, Loader2, Send,
   Clock, RefreshCw, ExternalLink, ShieldCheck, Globe, ChevronDown, ChevronUp
 } from 'lucide-react';
+import AILoadingState from '@/components/AILoadingState';
 
 // スクレイプ対象の公式URL
 const OFFICIAL_URLS = [
@@ -245,6 +246,7 @@ export default function AIPostPage() {
         image_url: null,
         scheduled_at: scheduledAt || null,
         platforms: selectedPlatforms,
+        is_ai: true,
       };
 
       const res = await fetch('/api/posts', {
@@ -262,7 +264,6 @@ export default function AIPostPage() {
       setTimeout(() => router.push('/'), 2500);
     } catch (err: any) {
       setGenerateError(err.message);
-    } finally {
       setIsPosting(false);
     }
   };
@@ -553,10 +554,12 @@ export default function AIPostPage() {
             )}
 
             {isGenerating && (
-              <div className="ai-generating-state">
-                <div className="ai-gen-ring" />
-                <p>公式情報を参照してAIが生成中...</p>
-                <p className="ai-gen-sub">Instagram / Facebook / X / Googleビジネス</p>
+              <div className="ai-empty-state">
+                <div className="ai-empty-icon">
+                  <Sparkles size={32} color="#6366f1" />
+                </div>
+                <h3>AIが文章を生成中...</h3>
+                <p>公式情報を参照し、各プラットフォームに最適な形式で<br />文章を作成しています。しばらくお待ちください。</p>
               </div>
             )}
 
@@ -1610,6 +1613,60 @@ export default function AIPostPage() {
           .ai-content-list { grid-template-columns: 1fr; }
         }
       `}</style>
+
+      {/* AI投稿生成中オーバーレイ */}
+      {isGenerating && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0,
+          width: '100vw', height: '100vh',
+          background: 'rgba(5, 8, 18, 0.88)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <AILoadingState
+            mainTitle="SNS投稿をAIが生成中..."
+            subTitle="公式情報を解析し、各SNSに最適な文章を作成しています。"
+            badgeText="AI GENERATION"
+            steps={[
+              '公式サイト・LPの最新情報を解析中...',
+              '設定されたトーン・テーマに合わせて構成中...',
+              'Instagram向けにハッシュタグを最適化中...',
+              'Facebook・X・Googleビジネス向けの文章を調整中...',
+              '最終プレビューを生成中...',
+            ]}
+          />
+        </div>
+      )}
+
+      {/* 投稿処理中オーバーレイ */}
+      {isPosting && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0,
+          width: '100vw', height: '100vh',
+          background: 'rgba(5, 8, 18, 0.88)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <AILoadingState
+            mainTitle={scheduledAt ? "予約配信を設定中..." : "各SNSへ同時配信中..."}
+            subTitle={scheduledAt ? "データベースへ予約情報を保存しています。" : "API接続・配信処理を行っています。そのままお待ちください。"}
+            badgeText="SNS PUBLISHING"
+            steps={scheduledAt ? [
+              'AI生成データを最終検証中...',
+              '各SNSプラットフォームの予約枠を確保中...',
+              'データベースにスケジュールを登録中...',
+            ] : [
+              'AI生成データを最終検証中...',
+              'Instagram へ画像・テキストを送信中...',
+              'Facebook ページへ投稿を配信中...',
+              'X (Twitter) へツイートを送信中...',
+              'Google ビジネスプロフィールへ投稿中...',
+            ]}
+          />
+        </div>
+      )}
     </div>
   );
 }

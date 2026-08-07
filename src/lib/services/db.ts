@@ -14,6 +14,7 @@ export interface Post {
   created_at: string;
   updated_at: string;
   scheduled_at?: string | null;
+  is_ai?: boolean;
 }
 
 export interface PostResult {
@@ -234,6 +235,7 @@ export class DBService {
           created_at: data.created_at || new Date().toISOString(),
           updated_at: data.updated_at || new Date().toISOString(),
           scheduled_at: data.scheduled_at || null,
+          is_ai: data.is_ai || false,
         });
 
         // results オブジェクトを展開してフラットな配列にマッピング
@@ -293,6 +295,7 @@ export class DBService {
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
         scheduled_at: data.scheduled_at || null,
+        is_ai: data.is_ai || false,
       };
 
       const results: PostResult[] = [];
@@ -343,6 +346,7 @@ export class DBService {
         created_at: nowStr,
         updated_at: nowStr,
         scheduled_at: postData.scheduled_at || null,
+        is_ai: postData.is_ai || false,
       };
       mockPosts.push(newPost);
 
@@ -387,6 +391,7 @@ export class DBService {
         updated_at: nowStr,
         results: resultsMap,
         scheduled_at: postData.scheduled_at !== undefined ? postData.scheduled_at : null,
+        is_ai: postData.is_ai || false,
       });
 
       return {
@@ -395,6 +400,7 @@ export class DBService {
         created_at: nowStr,
         updated_at: nowStr,
         scheduled_at: postData.scheduled_at !== undefined ? postData.scheduled_at : null,
+        is_ai: postData.is_ai || false,
       };
     } catch (e) {
       console.warn('Firestore createPost failed, falling back to mock DB:', e);

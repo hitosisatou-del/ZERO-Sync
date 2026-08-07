@@ -12,10 +12,12 @@ import {
   AlertTriangle,
   ExternalLink,
   Loader2,
-  Link2
+  Link2,
+  Sparkles
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
 import { Post, PostResult } from '@/lib/services/db';
+import AILoadingState from '@/components/AILoadingState';
 
 interface PostDetailClientProps {
   post: Post;
@@ -220,9 +222,29 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
       </Link>
 
       {/* ヘッダー */}
-      <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>{post.title || '投稿詳細'}</h1>
-        <p style={{ color: 'var(--text-muted)' }}>作成日時: {formattedDate}</p>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {post.is_ai && (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.2rem',
+              padding: '0.25rem 0.6rem',
+              borderRadius: '4px',
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(168,85,247,0.15) 100%)',
+              border: '1px solid rgba(168,85,247,0.4)',
+              color: '#a855f7',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+            }}>
+              <Sparkles size={14} /> AI自動生成
+            </span>
+          )}
+          {post.title || '投稿詳細'}
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
+          <p>作成日時: {formattedDate}</p>
+        </div>
       </div>
 
       {error && (
@@ -628,44 +650,28 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
         </div>
       </div>
 
-      {/* 削除中ローディングオーバーレイ */}
+      {/* 删除中AIローディングオーバーレイ */}
       {isDeleting && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(9, 10, 15, 0.8)',
-          backdropFilter: 'blur(5px)',
+          position: 'fixed', top: 0, left: 0,
+          width: '100vw', height: '100vh',
+          background: 'rgba(5, 8, 18, 0.88)',
+          backdropFilter: 'blur(8px)',
           zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1.25rem',
-          color: '#fff'
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)',
-            padding: '2.5rem',
-            borderRadius: 'var(--radius-lg)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-            maxWidth: '90%',
-            width: '400px',
-            textAlign: 'center'
-          }}>
-            <Loader2 size={40} className="spin-animation-fast" style={{ color: 'var(--color-failed)' }} />
-            <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>投稿を削除中...</span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              管理履歴および各SNSの投稿を連動削除しています。<br />そのまましばらくお待ちください。
-            </span>
-          </div>
+          <AILoadingState
+            mainTitle="投稿を削除中..."
+            subTitle="管理履歴および各SNSの投稿を連動削除しています。"
+            badgeText="DATA PROCESSING"
+            steps={[
+              'データベースから投稿レコードを削除中...',
+              'Facebook 投稿を連動削除中...',
+              'X (Twitter) ツイートを連動削除中...',
+              'Google ビジネス投稿を連動削除中...',
+              '削除完了を確認中...',
+            ]}
+          />
         </div>
       )}
 
