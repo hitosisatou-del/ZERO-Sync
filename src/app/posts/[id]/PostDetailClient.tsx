@@ -225,18 +225,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {post.is_ai && (
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.2rem',
-              padding: '0.25rem 0.6rem',
-              borderRadius: '4px',
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(168,85,247,0.15) 100%)',
-              border: '1px solid rgba(168,85,247,0.4)',
-              color: '#a855f7',
-              fontSize: '0.9rem',
-              fontWeight: 700,
-            }}>
+            <span className="ai-badge-animated" style={{ fontSize: '0.85rem', padding: '0.25rem 0.6rem' }}>
               <Sparkles size={14} /> AI自動生成
             </span>
           )}

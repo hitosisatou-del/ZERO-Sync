@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { SchoolContentService } from '@/lib/services/school-content';
+import { DBService } from '@/lib/services/db';
 
 export const revalidate = 0;
 
@@ -200,6 +201,8 @@ export async function POST(request: Request) {
       useLiveWebContent = false,
       // クライアントから事前スクレイプ済みコンテンツを渡す場合
       liveWebContent,
+      // AIの創造性調整
+      temperature = 0.7,
     } = await request.json();
 
     const apiKey = process.env.OPENAI_API_KEY;
@@ -238,7 +241,22 @@ export async function POST(request: Request) {
     }
 
     // ========================================================
-    // 3. システムプロンプトの構築
+    // 3. 直近の投稿履歴の取得 (重複回避用)
+    // ========================================================
+    let recentHistoryContext = '';
+    try {
+      const { posts } = await DBService.getPosts();
+      // 直近3件のベーステキストを取得
+      const recentPosts = posts.slice(0, 3).map(p => p.base_text).filter(Boolean);
+      if (recentPosts.length > 0) {
+        recentHistoryContext = recentPosts.map((text, i) => `【直近の投稿 ${i + 1}】\n${text}`).join('\n\n');
+      }
+    } catch (e) {
+      console.warn('Failed to fetch recent history for AI context:', e);
+    }
+
+    // ========================================================
+    // 4. システムプロンプトの構築
     // ========================================================
     const hasAnyContent = schoolContext || liveContent;
 
@@ -257,9 +275,26 @@ ${schoolContext ? `\n## 登録済み公式情報\n${schoolContext}` : ''}
 ${liveContent ? `\n## 公式Webサイト・LP（リアルタイム取得）\n${liveContent}` : ''}`
       : '';
 
+    const historyRulesSection = recentHistoryContext
+      ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【⚠️ 重複回避ルール】
+以下のテキストは、直近で私たちがSNSに投稿した内容です。
+新しく生成するテキストは、これらの「直近の投稿」とテーマや話題、構成が完全に被らないように、新しい視点や切り口で作成してください。
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${recentHistoryContext}
+` : '';
+
+    const today = new Date();
+    const dateContext = `本日は ${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日 です。この時期・季節感に合った自然な表現を取り入れてください。`;
+
     const systemPrompt = `あなたは宮崎県都城市にある「都城ドライビングスクール」のプロモーション担当者であり、Googleマップ検索（MEO）およびSNSマーケティングの専門家です。
 指示された「テーマ」「キーワード」「文章のトーン」「誘導先（CTA）」に基づいて、Googleビジネスプロフィールや各種SNS（Instagram, Facebook等）への投稿に最適な効果的な告知文を生成してください。
+
+【季節・時間コンテキスト】
+${dateContext}
 ${contentRulesSection}
+${historyRulesSection}
 
 以下の【構成ガイドライン】を厳守すること：
 1. 【タイトル・見出し】: 冒頭にテーマに合わせた魅力的な見出し（絵文字付き）を1行で記述する。
@@ -308,7 +343,7 @@ ${contentRulesSection}
             { role: 'system', content: systemPrompt },
             { role: 'user', content: variantPrompt },
           ],
-          temperature: 0.7,
+          temperature: temperature,
           max_tokens: 2000,
           response_format: { type: 'json_object' },
         }),
@@ -357,7 +392,7 @@ ${contentRulesSection}
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.7,
+        temperature: temperature,
         max_tokens: 1000,
       }),
     });

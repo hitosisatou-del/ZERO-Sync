@@ -39,6 +39,19 @@ interface Variants {
   google_business_text: string;
 }
 
+interface AutomationRule {
+  id: string;
+  day_of_week: number;
+  time_hour: number;
+  theme: string;
+  tone: string;
+  cta: string;
+  platforms: string[];
+  is_active: boolean;
+  last_run_at: string | null;
+}
+const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+
 const categoryLabels: Record<Category, string> = {
   basic: '🏫 基本情報',
   course: '🚗 コース・料金',
@@ -116,7 +129,7 @@ export default function AIPostPage() {
   const router = useRouter();
 
   // --- タブ状態 ---
-  const [activeTab, setActiveTab] = useState<'generate' | 'contents'>('generate');
+  const [activeTab, setActiveTab] = useState<'generate' | 'contents' | 'automation'>('generate');
 
   // --- 公式情報 ---
   const [contents, setContents] = useState<SchoolContent[]>([]);
@@ -130,6 +143,7 @@ export default function AIPostPage() {
   const [theme, setTheme] = useState(themeOptions[0].value);
   const [tone, setTone] = useState(toneOptions[0].value);
   const [cta, setCta] = useState(ctaOptions[0].value);
+  const [temperature, setTemperature] = useState<number>(0.7);
   const [selectedCategories, setSelectedCategories] = useState<Category[]>(['camp', 'course', 'campaign']);
   const [isGenerating, setIsGenerating] = useState(false);
   const [variants, setVariants] = useState<Variants | null>(null);
@@ -151,6 +165,54 @@ export default function AIPostPage() {
   const [postSuccess, setPostSuccess] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
   const [editedVariants, setEditedVariants] = useState<Variants | null>(null);
+
+  // --- オートメーション ---
+  const [automationRules, setAutomationRules] = useState<AutomationRule[]>([]);
+  const [automationForm, setAutomationForm] = useState({
+    day_of_week: 1,
+    time_hour: 9,
+    theme: themeOptions[0].value,
+    tone: toneOptions[0].value,
+    cta: ctaOptions[0].value,
+    platforms: ['instagram', 'facebook', 'twitter', 'google_business_profile'],
+    is_active: true
+  });
+  const [showAutoForm, setShowAutoForm] = useState(false);
+
+  const fetchAutomationRules = useCallback(async () => {
+    try {
+      const res = await fetch('/api/automation-rules');
+      const data = await res.json();
+      setAutomationRules(data.rules || []);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAutomationRules();
+  }, [fetchAutomationRules]);
+
+  const handleSaveAutoRule = async () => {
+    try {
+      const res = await fetch('/api/automation-rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(automationForm)
+      });
+      if (!res.ok) throw new Error('保存に失敗しました');
+      setShowAutoForm(false);
+      fetchAutomationRules();
+    } catch (e: any) {
+      alert(e.message);
+    }
+  };
+
+  const handleDeleteAutoRule = async (id: string) => {
+    if (!confirm('このルールを削除しますか？')) return;
+    await fetch(`/api/automation-rules?id=${id}`, { method: 'DELETE' });
+    fetchAutomationRules();
+  };
 
   // ─ 公式情報の取得
   const fetchContents = useCallback(async () => {
@@ -212,6 +274,7 @@ export default function AIPostPage() {
           generateVariants: true,
           // 取得済みのライブコンテンツを渡す（nullの場合は渡さない）
           liveWebContent: liveWebContent || undefined,
+          temperature,
         }),
       });
       const data = await res.json();
@@ -353,6 +416,15 @@ export default function AIPostPage() {
           公式情報管理
           <span className="ai-tab-count">{contents.filter(c => c.is_active).length}</span>
         </button>
+        <button
+          className={`ai-tab ${activeTab === 'automation' ? 'active' : ''}`}
+          onClick={() => setActiveTab('automation')}
+          id="tab-automation"
+        >
+          <Clock size={15} />
+          定期配信設定
+          <span className="ai-tab-count">{automationRules.length}</span>
+        </button>
       </div>
 
       {/* ═══════════════════════════════
@@ -413,6 +485,31 @@ export default function AIPostPage() {
                       {opt.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* AIの創造性 */}
+              <div className="ai-field">
+                <label className="ai-label">AIの創造性 (文章のバリエーション)</label>
+                <div className="ai-select-row">
+                  <button
+                    className={`ai-chip ${temperature === 0.3 ? 'selected' : ''}`}
+                    onClick={() => setTemperature(0.3)}
+                  >
+                    堅実・正確
+                  </button>
+                  <button
+                    className={`ai-chip ${temperature === 0.7 ? 'selected' : ''}`}
+                    onClick={() => setTemperature(0.7)}
+                  >
+                    標準（おすすめ）
+                  </button>
+                  <button
+                    className={`ai-chip ${temperature === 1.0 ? 'selected' : ''}`}
+                    onClick={() => setTemperature(1.0)}
+                  >
+                    独創的・ユニーク
+                  </button>
                 </div>
               </div>
 
@@ -1665,6 +1762,90 @@ export default function AIPostPage() {
               'Google ビジネスプロフィールへ投稿中...',
             ]}
           />
+        </div>
+      )}
+
+      {/* ═══════════════════════════════
+          TAB: オートメーション管理
+      ═══════════════════════════════ */}
+      {activeTab === 'automation' && (
+        <div className="ai-contents-layout">
+          <div className="ai-contents-toolbar" style={{ justifyContent: 'space-between' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 600 }}>定期配信ルール一覧</h2>
+            <button
+              className="ai-add-btn"
+              onClick={() => setShowAutoForm(true)}
+            >
+              <Plus size={14} />
+              新しいルールを作成
+            </button>
+          </div>
+
+          {showAutoForm && (
+            <div className="ai-form-card">
+              <h3 className="ai-form-title">新しい定期配信ルールを作成</h3>
+              
+              <div className="ai-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                <div className="ai-field">
+                  <label className="ai-label">実行する曜日</label>
+                  <select className="ai-select" value={automationForm.day_of_week} onChange={e => setAutomationForm(prev => ({ ...prev, day_of_week: parseInt(e.target.value) }))}>
+                    {daysOfWeek.map((day, i) => (
+                      <option key={i} value={i}>毎週 {day}曜日</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="ai-field">
+                  <label className="ai-label">実行する時間帯</label>
+                  <select className="ai-select" value={automationForm.time_hour} onChange={e => setAutomationForm(prev => ({ ...prev, time_hour: parseInt(e.target.value) }))}>
+                    {Array.from({length: 24}).map((_, i) => (
+                      <option key={i} value={i}>{i}:00 台に自動生成・配信</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="ai-field">
+                <label className="ai-label">生成テーマ</label>
+                <select className="ai-select" value={automationForm.theme} onChange={e => setAutomationForm(prev => ({ ...prev, theme: e.target.value }))}>
+                  {themeOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </div>
+
+              <div className="ai-form-actions">
+                <button className="ai-cancel-btn" onClick={() => setShowAutoForm(false)}><X size={14} />キャンセル</button>
+                <button className="ai-save-btn" onClick={handleSaveAutoRule}><Check size={14} />保存する</button>
+              </div>
+            </div>
+          )}
+
+          {automationRules.length === 0 ? (
+            <div className="ai-empty-contents">
+              <Clock size={28} color="#475569" />
+              <p>定期配信ルールが登録されていません</p>
+              <p className="ai-hint">毎週自動で投稿文を生成・配信するルールを作成できます。</p>
+            </div>
+          ) : (
+            <div className="ai-content-list">
+              {automationRules.map(rule => (
+                <div key={rule.id} className="ai-content-item">
+                  <div className="ai-content-item-header">
+                    <span className="ai-cat-badge" style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>
+                      毎週 {daysOfWeek[rule.day_of_week]}曜 {rule.time_hour}:00
+                    </span>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{rule.theme}</span>
+                  </div>
+                  <div className="ai-content-item-body" style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
+                    最終実行: {rule.last_run_at ? new Date(rule.last_run_at).toLocaleString('ja-JP') : '未実行'}
+                  </div>
+                  <div className="ai-content-item-actions">
+                    <button className="ai-icon-btn delete" onClick={() => handleDeleteAutoRule(rule.id)} title="削除">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

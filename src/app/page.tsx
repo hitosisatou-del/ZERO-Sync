@@ -346,19 +346,8 @@ export default async function DashboardPage() {
                       
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {post.is_ai && (
-                          <span style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.2rem',
-                            padding: '0.15rem 0.4rem',
-                            borderRadius: '4px',
-                            background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(168,85,247,0.1) 100%)',
-                            border: '1px solid rgba(168,85,247,0.3)',
-                            color: '#a855f7',
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                          }}>
-                            <Sparkles size={10} /> AI自動生成
+                          <span className="ai-badge-animated">
+                            <Sparkles size={12} /> AI自動生成
                           </span>
                         )}
                         {post.title || 'タイトルなし'}
@@ -529,19 +518,8 @@ export default async function DashboardPage() {
                       
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {post.is_ai && (
-                          <span style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.2rem',
-                            padding: '0.15rem 0.4rem',
-                            borderRadius: '4px',
-                            background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(168,85,247,0.1) 100%)',
-                            border: '1px solid rgba(168,85,247,0.3)',
-                            color: '#a855f7',
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                          }}>
-                            <Sparkles size={10} /> AI自動生成
+                          <span className="ai-badge-animated">
+                            <Sparkles size={12} /> AI自動生成
                           </span>
                         )}
                         {post.title || 'タイトルなし'}

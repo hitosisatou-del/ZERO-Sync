@@ -43,6 +43,7 @@ export default function AIPostModal({ isOpen, onClose, onApply }: AIPostModalPro
   const [customKeyword, setCustomKeyword] = useState('');
   const [tone, setTone] = useState(toneOptions[0].value);
   const [cta, setCta] = useState(ctaOptions[0].value);
+  const [temperature, setTemperature] = useState<number>(0.7);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedText, setGeneratedText] = useState('');
@@ -85,6 +86,7 @@ export default function AIPostModal({ isOpen, onClose, onApply }: AIPostModalPro
           keywords: selectedKeywords,
           tone,
           cta,
+          temperature,
         }),
       });
 
@@ -331,6 +333,20 @@ export default function AIPostModal({ isOpen, onClose, onApply }: AIPostModalPro
                 {ctaOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
+              </select>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">5. AIの創造性 (バリエーション)</label>
+              <select 
+                value={temperature} 
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                className="form-select"
+                disabled={isGenerating}
+              >
+                <option value={0.3}>堅実・正確 (0.3)</option>
+                <option value={0.7}>標準（おすすめ） (0.7)</option>
+                <option value={1.0}>独創的・ユニーク (1.0)</option>
               </select>
             </div>
           </div>

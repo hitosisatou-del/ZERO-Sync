@@ -42,6 +42,20 @@ export interface ConnectedAccount {
   error_message?: string | null;
 }
 
+export interface AutomationRule {
+  id: string;
+  day_of_week: number; // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+  time_hour: number; // 0-23
+  theme: string;
+  tone: string;
+  cta: string;
+  platforms: Array<'instagram' | 'facebook' | 'google_business_profile' | 'twitter'>;
+  is_active: boolean;
+  last_run_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // 初期モックデータ (都城ドライビングスクール専用のサンプル)
 let mockPosts: Post[] = [
   {
@@ -199,6 +213,8 @@ let mockUserRoles: Array<{ email: string; role: 'admin' | 'editor' }> = [
   { email: 'hitosi.satou@gmail.com', role: 'admin' },
   { email: 'editor@example.com', role: 'editor' }
 ];
+
+let mockAutomationRules: AutomationRule[] = [];
 
 // DBアクセスクラス (Firestore ＆ MockDB ハイブリッド)
 export class DBService {
@@ -864,6 +880,107 @@ export class DBService {
     } catch (e) {
       console.warn('Firestore deleteUserRole failed:', e);
       throw e;
+    }
+  }
+
+  // =========================================================================
+  // オートメーションルール (AutomationRule) 関連
+  // =========================================================================
+
+  static async getAutomationRules(): Promise<AutomationRule[]> {
+    if (!isFirebaseConfigured() || !adminDb) {
+      return [...mockAutomationRules];
+    }
+    try {
+      const snapshot = await adminDb.collection('automation_rules').get();
+      const rules: AutomationRule[] = [];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        rules.push({
+          id: doc.id,
+          day_of_week: d.day_of_week,
+          time_hour: d.time_hour,
+          theme: d.theme,
+          tone: d.tone,
+          cta: d.cta,
+          platforms: d.platforms,
+          is_active: d.is_active,
+          last_run_at: d.last_run_at || null,
+          created_at: d.created_at || new Date().toISOString(),
+          updated_at: d.updated_at || new Date().toISOString(),
+        });
+      });
+      return rules;
+    } catch (e) {
+      console.warn('Firestore getAutomationRules failed:', e);
+      return [...mockAutomationRules];
+    }
+  }
+
+  static async createAutomationRule(ruleData: Omit<AutomationRule, 'id' | 'created_at' | 'updated_at' | 'last_run_at'>): Promise<AutomationRule> {
+    const nowStr = new Date().toISOString();
+    const newRule: AutomationRule = {
+      ...ruleData,
+      id: `rule-${Date.now()}`,
+      last_run_at: null,
+      created_at: nowStr,
+      updated_at: nowStr,
+    };
+    if (!isFirebaseConfigured() || !adminDb) {
+      mockAutomationRules.push(newRule);
+      return newRule;
+    }
+    try {
+      const docRef = await adminDb.collection('automation_rules').add({
+        ...ruleData,
+        last_run_at: null,
+        created_at: nowStr,
+        updated_at: nowStr,
+      });
+      newRule.id = docRef.id;
+      return newRule;
+    } catch (e) {
+      console.warn('Firestore createAutomationRule failed:', e);
+      mockAutomationRules.push(newRule);
+      return newRule;
+    }
+  }
+
+  static async deleteAutomationRule(id: string): Promise<void> {
+    if (!isFirebaseConfigured() || !adminDb) {
+      mockAutomationRules = mockAutomationRules.filter(r => r.id !== id);
+      return;
+    }
+    try {
+      await adminDb.collection('automation_rules').doc(id).delete();
+    } catch (e) {
+      console.warn('Firestore deleteAutomationRule failed:', e);
+      mockAutomationRules = mockAutomationRules.filter(r => r.id !== id);
+    }
+  }
+
+  static async updateAutomationRuleLastRun(id: string): Promise<void> {
+    const nowStr = new Date().toISOString();
+    if (!isFirebaseConfigured() || !adminDb) {
+      const idx = mockAutomationRules.findIndex(r => r.id === id);
+      if (idx !== -1) {
+        mockAutomationRules[idx].last_run_at = nowStr;
+        mockAutomationRules[idx].updated_at = nowStr;
+      }
+      return;
+    }
+    try {
+      await adminDb.collection('automation_rules').doc(id).update({
+        last_run_at: nowStr,
+        updated_at: nowStr,
+      });
+    } catch (e) {
+      console.warn('Firestore updateAutomationRuleLastRun failed:', e);
+      const idx = mockAutomationRules.findIndex(r => r.id === id);
+      if (idx !== -1) {
+        mockAutomationRules[idx].last_run_at = nowStr;
+        mockAutomationRules[idx].updated_at = nowStr;
+      }
     }
   }
 }

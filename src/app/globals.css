@@ -448,7 +448,37 @@ p {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* AIバッジ用アニメーション */
+@keyframes aiPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.2);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 8px 1px rgba(168, 85, 247, 0.5);
+    filter: brightness(1.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.2);
+    filter: brightness(1);
+  }
+}
+
+.ai-badge-animated {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(168,85,247,0.15) 100%);
+  border: 1px solid rgba(168,85,247,0.4);
+  color: #a855f7;
+  font-size: 0.75rem;
+  font-weight: 700;
+  animation: aiPulse 2.5s infinite ease-in-out;
 }
 
 /* プラットフォーム別のアイコン・テキストカラー用 */
