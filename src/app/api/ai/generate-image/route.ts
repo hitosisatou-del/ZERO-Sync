@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'dall-e-3',
+        model: 'gpt-image-2',
         prompt: imagePrompt,
         n: 1,
         size: '1024x1024',
@@ -45,16 +45,13 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    const imageUrl = data.data[0].url;
-
-    // 画像をダウンロードして圧縮（Sharpを使用）
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error('生成された画像のダウンロードに失敗しました');
+    const base64Data = data.data[0].b64_json;
+    
+    if (!base64Data) {
+      throw new Error('画像データが取得できませんでした');
     }
 
-    const arrayBuffer = await imageResponse.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const buffer = Buffer.from(base64Data, 'base64');
 
     // Sharpでリサイズ＆圧縮（DB容量制限対策: 1024x1024 -> 800x800, JPEG 70%）
     const compressedBuffer = await sharp(buffer)
