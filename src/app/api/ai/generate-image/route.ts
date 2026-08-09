@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: imagePrompt,
+        model: 'dall-e-2',
+        prompt: imagePrompt.substring(0, 950), // DALL-E 2 has a 1000 character limit for prompts
         n: 1,
         size: '1024x1024',
       }),
