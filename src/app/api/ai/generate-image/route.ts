@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
         prompt: imagePrompt,
         n: 1,
         size: '1024x1024',
-        response_format: 'url',
       }),
     });
 
