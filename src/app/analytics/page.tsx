@@ -80,6 +80,10 @@ export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('overall');
   const [showGuide, setShowGuide] = useState(true);
 
+  // --- AI分析 ---
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
+
   // APIデータ
   const [data, setData] = useState<{
     isConnectedMap: Record<string, boolean>;
@@ -137,6 +141,20 @@ export default function AnalyticsPage() {
       </div>
     );
   }
+
+  const handleGenerateFeedback = async () => {
+    setIsGeneratingFeedback(true);
+    try {
+      const res = await fetch('/api/analytics/ai-feedback');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setAiFeedback(data.feedback);
+    } catch (e: any) {
+      alert(e.message || 'AI分析に失敗しました');
+    } finally {
+      setIsGeneratingFeedback(false);
+    }
+  };
 
   const { channelSummaries, dailyTrend, postPerformanceList, keywords, googleLocationName } = data;
   const overall = channelSummaries.overall;
@@ -240,6 +258,47 @@ export default function AnalyticsPage() {
           <Calendar size={14} />
           <span>直近30日間の自動解析データ</span>
         </div>
+      </div>
+
+      {/* AI改善アドバイスセクション */}
+      <div style={{ marginTop: '1rem', background: 'var(--bg-tertiary)', border: '1px solid var(--border-focus)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: aiFeedback ? '1.5rem' : '0' }}>
+          <div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, color: 'var(--text-primary)' }}>
+              <Sparkles size={18} style={{ color: 'var(--accent-primary)' }} />
+              AIによる集客レポート分析＆改善提案
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>
+              現在のデータをもとに、AIマーケティングコンサルタントが具体的なアドバイスを作成します。
+            </p>
+          </div>
+          <button 
+            className="btn btn-primary" 
+            onClick={handleGenerateFeedback} 
+            disabled={isGeneratingFeedback}
+            style={{ padding: '0.6rem 1.25rem', whiteSpace: 'nowrap' }}
+          >
+            {isGeneratingFeedback ? (
+              <><Loader2 size={16} className="spinner" /> 分析中...</>
+            ) : (
+              <><Sparkles size={16} /> AIに分析させる</>
+            )}
+          </button>
+        </div>
+        
+        {aiFeedback && (
+          <div style={{ 
+            background: 'rgba(255,255,255,0.02)', 
+            border: '1px solid var(--border-color)', 
+            borderRadius: 'var(--radius-md)', 
+            padding: '1.5rem',
+            lineHeight: 1.7,
+            color: 'var(--text-secondary)'
+          }}>
+            {/* Markdown形式のテキストを簡易的に表示（要件に応じてreact-markdown等を利用してもOK） */}
+            <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.95rem' }} dangerouslySetInnerHTML={{ __html: aiFeedback.replace(/\\n/g, '<br/>').replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>') }} />
+          </div>
+        )}
       </div>
 
       {/* 2. メインナビゲーションタブ */}

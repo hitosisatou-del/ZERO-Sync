@@ -165,6 +165,10 @@ export default function AIPostPage() {
   const [postSuccess, setPostSuccess] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
   const [editedVariants, setEditedVariants] = useState<Variants | null>(null);
+  
+  // --- 画像自動生成 ---
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // --- オートメーション ---
   const [automationRules, setAutomationRules] = useState<AutomationRule[]>([]);
@@ -306,7 +310,7 @@ export default function AIPostPage() {
         google_business_text: editedVariants.google_business_text,
         twitter_text: editedVariants.twitter_text,
         link_url: null,
-        image_url: null,
+        image_url: generatedImageUrl,
         scheduled_at: scheduledAt || null,
         platforms: selectedPlatforms,
         is_ai: true,
@@ -328,6 +332,27 @@ export default function AIPostPage() {
     } catch (err: any) {
       setGenerateError(err.message);
       setIsPosting(false);
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    setIsGeneratingImage(true);
+    try {
+      const res = await fetch('/api/ai/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          theme: theme,
+          textContext: editedVariants?.base_text || variants?.base_text || ''
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setGeneratedImageUrl(data.imageUrl);
+    } catch (e: any) {
+      alert(e.message || '画像生成に失敗しました');
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -722,6 +747,48 @@ export default function AIPostPage() {
                       <span style={{ color: '#f87171', marginLeft: '0.5rem' }}>⚠️ 140文字を超えています</span>
                     )}
                   </div>
+                </div>
+
+                {/* 画像生成セクション */}
+                <div className="ai-image-gen-section" style={{ marginTop: '1.5rem', padding: '1.5rem', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Sparkles size={16} style={{ color: 'var(--accent-primary)' }} />
+                    投稿用画像をAIで生成する
+                  </h3>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                    <button 
+                      className="ai-btn ai-btn-primary" 
+                      onClick={handleGenerateImage} 
+                      disabled={isGeneratingImage}
+                      style={{ padding: '0.75rem 1.25rem', whiteSpace: 'nowrap' }}
+                    >
+                      {isGeneratingImage ? (
+                        <><Loader2 size={16} className="spinner" /> 生成中（約15秒）</>
+                      ) : (
+                        <><Sparkles size={16} /> 画像を自動生成</>
+                      )}
+                    </button>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                      ※現在のテーマとテキスト内容を元に、DALL-E 3 が自動で最適な画像を生成します。<br/>
+                      ※生成には少し時間がかかります。
+                    </p>
+                  </div>
+                  {generatedImageUrl && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--color-success)', marginBottom: '0.5rem' }}>✓ 画像を生成しました</p>
+                      <img 
+                        src={generatedImageUrl} 
+                        alt="AI生成画像" 
+                        style={{ maxWidth: '300px', width: '100%', height: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                      />
+                      <button 
+                        onClick={() => setGeneratedImageUrl(null)}
+                        style={{ display: 'block', marginTop: '0.5rem', background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}
+                      >
+                        画像を削除する
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* 配信設定 */}
