@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -20,12 +22,12 @@ export async function GET(request: NextRequest) {
 
     // 必要な情報だけを抽出・要約してAIに渡す
     const dataToAnalyze = {
-      summary: analyticsData.summary,
-      dailyTrendSample: analyticsData.dailyTrend.slice(-7), // 直近7日間の推移
-      topPosts: analyticsData.recentPosts.slice(0, 5).map((p: any) => ({
+      summary: analyticsData.channelSummaries?.overall,
+      dailyTrendSample: analyticsData.dailyTrend?.slice(-7) || [], // 直近7日間の推移
+      topPosts: (analyticsData.postPerformanceList || []).slice(0, 5).map((p: any) => ({
         title: p.title,
-        text: p.base_text.substring(0, 100) + '...',
-        success_count: p.success_count
+        text: p.base_text ? p.base_text.substring(0, 100) + '...' : '',
+        totalEngagement: p.totalEngagement
       }))
     };
 
