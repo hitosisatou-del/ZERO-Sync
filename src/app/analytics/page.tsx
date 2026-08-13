@@ -286,7 +286,22 @@ export default function AnalyticsPage() {
           </button>
         </div>
         
-        {aiFeedback && (
+        {isGeneratingFeedback ? (
+          <div style={{ margin: '2rem 0' }}>
+            <AILoadingState 
+              mainTitle="AIマーケティング分析を実行中..." 
+              subTitle="直近の集客データと各SNSのエンゲージメント傾向を解析しています"
+              badgeText="ANALYZING"
+              steps={[
+                '各チャネルのパフォーマンスデータを読み込み中...',
+                '集客数・反応率のトレンドを解析中...',
+                '競合や過去データとの比較を行っています...',
+                '具体的な改善アクションプランを生成中...',
+                '最終調整・レポートの出力準備中...'
+              ]}
+            />
+          </div>
+        ) : aiFeedback ? (
           <div style={{ 
             background: 'rgba(255,255,255,0.02)', 
             border: '1px solid var(--border-color)', 
@@ -298,7 +313,7 @@ export default function AnalyticsPage() {
             {/* Markdown形式のテキストを簡易的に表示（要件に応じてreact-markdown等を利用してもOK） */}
             <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.95rem' }} dangerouslySetInnerHTML={{ __html: aiFeedback.replace(/\\n/g, '<br/>').replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>') }} />
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* 2. メインナビゲーションタブ */}
