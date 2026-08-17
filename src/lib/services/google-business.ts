@@ -71,7 +71,7 @@ async function getFreshGoogleAccessToken(account: any): Promise<string> {
     account_name: account.account_name,
     external_account_id: account.external_account_id,
     access_token: encrypt(newAccessToken),
-    refresh_token: account.refresh_token, // リフレッシュトークンはそのまま保持
+    refresh_token: data.refresh_token ? encrypt(data.refresh_token) : account.refresh_token,
     token_expires_at: newExpiresAt,
   });
   
@@ -479,9 +479,10 @@ export async function getGoogleBusinessPerformance(
     const dailyMap: Record<string, any> = {};
     
     const initializeDateMap = () => {
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const k = d.toISOString().split('T')[0];
+      let current = new Date(startDate.getTime());
+      const oneDay = 24 * 60 * 60 * 1000;
+      while (current <= endDate) {
+        const k = current.toISOString().split('T')[0];
         dailyMap[k] = {
           date: k,
           viewsSearch: 0,
@@ -490,6 +491,7 @@ export async function getGoogleBusinessPerformance(
           clicksCall: 0,
           clicksDirections: 0
         };
+        current = new Date(current.getTime() + oneDay);
       }
     };
     initializeDateMap();
@@ -614,8 +616,8 @@ export async function getGoogleBusinessPostMetrics(
 
     const postData = await response.json();
     return {
-      views: Math.floor(Math.random() * 150) + 20,
-      clicks: Math.floor(Math.random() * 15),
+      views: 0, // 投稿個別インサイトは現在API v4で直接サポートされていないため0とする
+      clicks: 0,
       state: postData.state, // 'LIVE' | 'PROCESSING' | 'REJECTED'
     };
   } catch (e) {

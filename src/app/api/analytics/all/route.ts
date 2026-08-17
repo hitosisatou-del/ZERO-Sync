@@ -49,61 +49,7 @@ export async function GET() {
       googleData = await getGoogleBusinessPerformance('encrypted_dummy_token');
     }
 
-    // 2. 過去30日間の日別トレンドデータの生成 (Google実データまたは生成ベース)
-    const baseDaily = googleData.dailyData || [];
-    const dailyTrend: DailyTrendItem[] = baseDaily.map((d: any, index: number) => {
-      const pseudoRandom = Math.sin(index * 1.5 + 3.14) * 0.5 + 0.5;
-      const baseVal = (d.viewsSearch || 120) + (d.viewsMaps || 250);
-      
-      const instagramReach = Math.floor(baseVal * 0.85 + pseudoRandom * 120);
-      const facebookReach = Math.floor(baseVal * 0.45 + pseudoRandom * 80);
-      const twitterImpressions = Math.floor(baseVal * 1.3 + pseudoRandom * 300);
-      const totalEngagements = Math.floor(
-        (d.clicksWebsite || 10) +
-        (d.clicksCall || 5) +
-        (d.clicksDirections || 15) +
-        instagramReach * 0.08 +
-        facebookReach * 0.06 +
-        twitterImpressions * 0.05
-      );
-
-      return {
-        date: d.date,
-        googleViews: d.viewsSearch + d.viewsMaps,
-        googleActions: (d.clicksWebsite || 0) + (d.clicksCall || 0) + (d.clicksDirections || 0),
-        instagramReach,
-        instagramLikes: Math.floor(instagramReach * 0.06 + pseudoRandom * 15),
-        facebookReach,
-        facebookReactions: Math.floor(facebookReach * 0.04 + pseudoRandom * 10),
-        twitterImpressions,
-        twitterLikes: Math.floor(twitterImpressions * 0.03 + pseudoRandom * 20),
-        totalEngagements,
-      };
-    });
-
-    // 各SNSチャネルの30日間サマリー集計
-    const googleTotalViews = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.googleViews, 0);
-    const googleTotalActions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.googleActions, 0);
-
-    const instagramTotalReach = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.instagramReach, 0);
-    const instagramTotalLikes = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.instagramLikes, 0);
-    const instagramTotalComments = Math.floor(instagramTotalLikes * 0.18);
-    const instagramTotalSaves = Math.floor(instagramTotalLikes * 0.35);
-
-    const facebookTotalReach = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.facebookReach, 0);
-    const facebookTotalReactions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.facebookReactions, 0);
-    const facebookTotalComments = Math.floor(facebookTotalReactions * 0.15);
-    const facebookTotalShares = Math.floor(facebookTotalReactions * 0.12);
-
-    const twitterTotalImpressions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.twitterImpressions, 0);
-    const twitterTotalLikes = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.twitterLikes, 0);
-    const twitterTotalRetweets = Math.floor(twitterTotalLikes * 0.28);
-    const twitterTotalReplies = Math.floor(twitterTotalLikes * 0.10);
-
-    const grandTotalReach = googleTotalViews + instagramTotalReach + facebookTotalReach + twitterTotalImpressions;
-    const grandTotalEngagements = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.totalEngagements, 0);
-
-    // 3. 各投稿（「みんなの投稿成果」）ごとのメトリクス集計
+    // 2. 各投稿（「みんなの投稿成果」）ごとのメトリクス集計（実データのみ）
     const postPerformanceList = await Promise.all(
       posts.map(async (post) => {
         const postResults = results.filter((r) => r.post_id === post.id);
@@ -119,6 +65,7 @@ export async function GET() {
 
             if (res.platform === 'instagram') {
               const m = await getInstagramMetrics(token, res.external_post_id);
+              // Instagramのリーチ数は簡易的にいいね+コメントから推測（可能であればインサイトから取得するのが理想）
               const reachEst = m.likes * 12 + 150;
               const eng = m.likes + m.comments;
               platformStats.instagram = { ...m, reach: reachEst, engagement: eng };
@@ -139,44 +86,8 @@ export async function GET() {
               postReach += imp;
               postEngagement += eng;
             } else if (res.platform === 'google_business_profile') {
-              const viewsEst = Math.floor(Math.random() * 300) + 150;
-              const actionsEst = Math.floor(Math.random() * 25) + 5;
-              platformStats.google_business_profile = { views: viewsEst, actions: actionsEst };
-              postReach += viewsEst;
-              postEngagement += actionsEst;
-            }
-          } else {
-            // モック補完
-            const mockSeed = (post.id.length * 37) % 50;
-            if (res.platform === 'instagram') {
-              const likes = 24 + mockSeed;
-              const comments = Math.floor(likes * 0.15);
-              const reach = likes * 14;
-              platformStats.instagram = { likes, comments, reach, engagement: likes + comments };
-              postReach += reach;
-              postEngagement += likes + comments;
-            } else if (res.platform === 'facebook') {
-              const likes = 18 + mockSeed;
-              const comments = Math.floor(likes * 0.1);
-              const shares = Math.floor(likes * 0.08);
-              const reach = likes * 10;
-              platformStats.facebook = { likes, comments, shares, reach, engagement: likes + comments + shares };
-              postReach += reach;
-              postEngagement += likes + comments + shares;
-            } else if (res.platform === 'twitter') {
-              const likes = 32 + mockSeed;
-              const retweets = Math.floor(likes * 0.25);
-              const replies = Math.floor(likes * 0.08);
-              const impressions = likes * 22;
-              platformStats.twitter = { likes, retweets, replies, impressions, engagement: likes + retweets + replies };
-              postReach += impressions;
-              postEngagement += likes + retweets + replies;
-            } else if (res.platform === 'google_business_profile') {
-              const views = 210 + mockSeed * 5;
-              const actions = 14 + Math.floor(mockSeed * 0.5);
-              platformStats.google_business_profile = { views, actions };
-              postReach += views;
-              postEngagement += actions;
+              // Googleの投稿個別インサイトは提供されていないため0とする
+              platformStats.google_business_profile = { views: 0, actions: 0 };
             }
           }
         }
@@ -202,6 +113,73 @@ export async function GET() {
         };
       })
     );
+
+    // 3. 過去30日間の日別トレンドデータの生成 (Google実データ ＋ 各SNSの実績投稿ベース)
+    const baseDaily = googleData.dailyData || [];
+    const dailyTrend: DailyTrendItem[] = baseDaily.map((d: any) => {
+      const targetDate = d.date; // YYYY-MM-DD
+      
+      // その日に行われた投稿をフィルタリング
+      const postsOnDate = postPerformanceList.filter(p => p.created_at && p.created_at.startsWith(targetDate));
+      
+      let instagramReach = 0, instagramLikes = 0;
+      let facebookReach = 0, facebookReactions = 0;
+      let twitterImpressions = 0, twitterLikes = 0;
+
+      for (const p of postsOnDate) {
+        if (p.platformStats.instagram) {
+          instagramReach += p.platformStats.instagram.reach || 0;
+          instagramLikes += p.platformStats.instagram.likes || 0;
+        }
+        if (p.platformStats.facebook) {
+          facebookReach += p.platformStats.facebook.reach || 0;
+          facebookReactions += p.platformStats.facebook.likes || 0;
+        }
+        if (p.platformStats.twitter) {
+          twitterImpressions += p.platformStats.twitter.impressions || 0;
+          twitterLikes += p.platformStats.twitter.likes || 0;
+        }
+      }
+
+      const googleViews = (d.viewsSearch || 0) + (d.viewsMaps || 0);
+      const googleActions = (d.clicksWebsite || 0) + (d.clicksCall || 0) + (d.clicksDirections || 0);
+      const totalEngagements = googleActions + instagramLikes + facebookReactions + twitterLikes;
+
+      return {
+        date: targetDate,
+        googleViews,
+        googleActions,
+        instagramReach,
+        instagramLikes,
+        facebookReach,
+        facebookReactions,
+        twitterImpressions,
+        twitterLikes,
+        totalEngagements,
+      };
+    });
+
+    // 各SNSチャネルの30日間サマリー集計
+    const googleTotalViews = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.googleViews, 0);
+    const googleTotalActions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.googleActions, 0);
+
+    const instagramTotalReach = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.instagramReach, 0);
+    const instagramTotalLikes = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.instagramLikes, 0);
+    const instagramTotalComments = postPerformanceList.reduce((sum: number, p) => sum + (p.platformStats.instagram?.comments || 0), 0);
+    const instagramTotalSaves = 0; // 実データのみを扱うためモックを排除
+
+    const facebookTotalReach = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.facebookReach, 0);
+    const facebookTotalReactions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.facebookReactions, 0);
+    const facebookTotalComments = postPerformanceList.reduce((sum: number, p) => sum + (p.platformStats.facebook?.comments || 0), 0);
+    const facebookTotalShares = postPerformanceList.reduce((sum: number, p) => sum + (p.platformStats.facebook?.shares || 0), 0);
+
+    const twitterTotalImpressions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.twitterImpressions, 0);
+    const twitterTotalLikes = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.twitterLikes, 0);
+    const twitterTotalRetweets = postPerformanceList.reduce((sum: number, p) => sum + (p.platformStats.twitter?.retweets || 0), 0);
+    const twitterTotalReplies = postPerformanceList.reduce((sum: number, p) => sum + (p.platformStats.twitter?.replies || 0), 0);
+
+    const grandTotalReach = googleTotalViews + instagramTotalReach + facebookTotalReach + twitterTotalImpressions;
+    const grandTotalEngagements = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.totalEngagements, 0);
 
     // 総エンゲージメント順にソート（Topパフォーマンス分析用）
     postPerformanceList.sort((a, b) => b.totalEngagement - a.totalEngagement);
