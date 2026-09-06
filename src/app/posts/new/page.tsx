@@ -254,14 +254,14 @@ export default function NewPostPage() {
       return;
     }
 
-    // Instagram は画像が必須
-    if (platforms.instagram && !mediaUrl) {
-      setError('Instagramへの投稿には画像または動画が必須です。');
+    if (isUploading) {
+      setError('メディアのアップロード中です。完了するまでお待ちください。');
       return;
     }
 
-    if (isUploading) {
-      setError('メディアのアップロード中です。完了するまでお待ちください。');
+    // Instagram は画像が必須
+    if (platforms.instagram && !mediaUrl) {
+      setError('Instagramへの投稿には画像または動画が必須です。');
       return;
     }
 
