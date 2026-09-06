@@ -98,7 +98,8 @@ export async function GET() {
           id: post.id,
           title: post.title || '（無題の投稿）',
           base_text: post.base_text,
-          image_url: post.image_url,
+          media_url: post.media_url,
+          media_type: post.media_type,
           created_at: post.created_at,
           scheduled_at: post.scheduled_at,
           platformResults: postResults.map((r) => ({

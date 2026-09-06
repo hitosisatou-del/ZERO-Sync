@@ -49,7 +49,8 @@ interface PostPerformance {
   id: string;
   title: string;
   base_text: string;
-  image_url: string | null;
+  media_url: string | null;
+  media_type?: string | null;
   created_at: string;
   scheduled_at?: string | null;
   platformResults: Array<{
@@ -561,9 +562,9 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="top-post-flex" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                {topPost.image_url && (
+                {topPost.media_url && (
                   <img
-                    src={topPost.image_url}
+                    src={topPost.media_url}
                     alt={topPost.title}
                     style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
                   />
@@ -636,8 +637,8 @@ export default function AnalyticsPage() {
                           }}>
                             {idx + 1}
                           </div>
-                          {post.image_url && (
-                            <img src={post.image_url} alt="" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
+                          {post.media_url && (
+                            <img src={post.media_url} alt="" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
                           )}
                           <div>
                             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{post.title}</div>

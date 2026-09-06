@@ -262,7 +262,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
               投稿内容
             </h2>
             
-            {post.image_url && (
+            {post.media_url && (
               <div style={{
                 borderRadius: 'var(--radius-md)',
                 overflow: 'hidden',
@@ -273,7 +273,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
               }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
-                  src={post.image_url} 
+                  src={post.media_url} 
                   alt={post.title || 'Post image'} 
                   style={{ maxWidth: '100%', width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                 />

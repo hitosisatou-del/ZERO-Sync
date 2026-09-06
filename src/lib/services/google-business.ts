@@ -213,11 +213,11 @@ export async function publishToGoogleBusiness(
       };
     }
 
-    if (publicImageUrl) {
+    if (publicMediaUrl) {
       postBody.media = [
         {
-          sourceUrl: publicImageUrl,
-          mediaFormat: 'PHOTO',
+          sourceUrl: publicMediaUrl,
+          mediaFormat: mediaType === 'video' ? 'VIDEO' : 'PHOTO',
         }
       ];
     }

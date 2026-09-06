@@ -258,7 +258,7 @@ export default async function DashboardPage() {
                 <div key={post.id} className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--accent-primary)', position: 'relative' }}>
                   <div className="post-item-flex">
                     {/* 画像プレビュー */}
-                    {post.image_url && (
+                    {post.media_url && (
                       <div style={{
                         width: '120px',
                         height: '120px',
@@ -271,7 +271,7 @@ export default async function DashboardPage() {
                       }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
-                          src={post.image_url} 
+                          src={post.media_url} 
                           alt={post.title || 'Post image'} 
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
@@ -465,7 +465,7 @@ export default async function DashboardPage() {
                 <div key={post.id} className="card" style={{ padding: '1.5rem' }}>
                   <div className="post-item-flex">
                     {/* 画像プレビュー */}
-                    {post.image_url && (
+                    {post.media_url && (
                       <div style={{
                         width: '120px',
                         height: '120px',
@@ -478,7 +478,7 @@ export default async function DashboardPage() {
                       }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
-                          src={post.image_url} 
+                          src={post.media_url} 
                           alt={post.title || 'Post image'} 
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />

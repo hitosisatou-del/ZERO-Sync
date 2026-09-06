@@ -54,9 +54,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         account.access_token,
         account.external_account_id || '',
         post.instagram_text || post.base_text,
-        post.image_url || '',
-        postId,
-        host
+        post.media_url || '',
+        post.id,
+        host,
+        post.media_type
       );
     } else if (platform === 'facebook') {
       result = await publishToFacebook(
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         account.external_account_id || '',
         post.facebook_text || post.base_text,
         post.link_url,
-        post.image_url,
+        post.media_url,
         postId,
         host
       );
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         account.external_account_id || '',
         post.google_business_text || post.base_text,
         post.link_url,
-        post.image_url,
+        post.media_url,
         postId,
         host
       );
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       result = await publishToTwitter(
         account.access_token,
         post.twitter_text || post.base_text,
-        post.image_url,
+        post.media_url,
         post.title
       );
     }

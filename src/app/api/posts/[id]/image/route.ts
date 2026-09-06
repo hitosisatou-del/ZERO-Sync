@@ -15,15 +15,15 @@ export async function GET(
     
     // DBから投稿情報を取得
     const postData = await DBService.getPostById(postId);
-    if (!postData || !postData.post || !postData.post.image_url) {
+    if (!postData || !postData.post || !postData.post.media_url) {
       return new Response('Image not found', { status: 404 });
     }
 
-    const imageUrl = postData.post.image_url;
+    const mediaUrl = postData.post.media_url;
 
     // Base64データURLの場合はバイナリに変換して返す
-    if (imageUrl.startsWith('data:')) {
-      const matches = imageUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+    if (mediaUrl.startsWith('data:')) {
+      const matches = mediaUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
       if (!matches || matches.length !== 3) {
         return new Response('Invalid image data format', { status: 400 });
       }
@@ -42,9 +42,9 @@ export async function GET(
 
     // 通常のURLの場合はフェッチしてプロキシする
     try {
-      const imageResponse = await fetch(imageUrl);
+      const imageResponse = await fetch(mediaUrl);
       if (!imageResponse.ok) {
-        console.error(`Failed to fetch original image from URL: ${imageUrl}. HTTP Status: ${imageResponse.status}`);
+        console.error(`Failed to fetch original image from URL: ${mediaUrl}. HTTP Status: ${imageResponse.status}`);
         return new Response('Failed to fetch original image', { status: imageResponse.status });
       }
       const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
@@ -60,7 +60,7 @@ export async function GET(
     } catch (e) {
       console.error('Error proxying external image:', e);
       // エラー時のフォールバックとしてリダイレクト
-      return NextResponse.redirect(imageUrl);
+      return NextResponse.redirect(mediaUrl);
     }
   } catch (error: any) {
     console.error('Error serving image:', error);

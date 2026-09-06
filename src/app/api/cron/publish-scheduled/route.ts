@@ -68,9 +68,10 @@ async function processScheduledPosts(request: NextRequest) {
               account.access_token,
               account.external_account_id || '',
               post.instagram_text || post.base_text,
-              post.image_url || '',
+              post.media_url || '',
               post.id,
-              host
+              host,
+              post.media_type
             );
           } else if (res.platform === 'facebook') {
             publishResult = await publishToFacebook(
@@ -78,7 +79,7 @@ async function processScheduledPosts(request: NextRequest) {
               account.external_account_id || '',
               post.facebook_text || post.base_text,
               post.link_url,
-              post.image_url,
+              post.media_url,
               post.id,
               host
             );
@@ -88,7 +89,7 @@ async function processScheduledPosts(request: NextRequest) {
               account.external_account_id || '',
               post.google_business_text || post.base_text,
               post.link_url,
-              post.image_url,
+              post.media_url,
               post.id,
               host
             );
@@ -96,7 +97,7 @@ async function processScheduledPosts(request: NextRequest) {
             publishResult = await publishToTwitter(
               account.access_token,
               post.twitter_text || post.base_text,
-              post.image_url,
+              post.media_url,
               post.title
             );
           }

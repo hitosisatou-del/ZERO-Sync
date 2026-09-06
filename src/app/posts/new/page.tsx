@@ -420,7 +420,7 @@ export default function NewPostPage() {
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">画像アップロード (1枚)</label>
-              {!imagePreview ? (
+              {!mediaPreview ? (
                 <label style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -438,8 +438,8 @@ export default function NewPostPage() {
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>PNG, JPG (Instagram投稿時は必須)</span>
                   <input
                     type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
+                    accept="image/*,video/*"
+                    onChange={handleMediaChange}
                     style={{ display: 'none' }}
                     disabled={isLoading}
                   />
@@ -454,13 +454,13 @@ export default function NewPostPage() {
                 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={imagePreview}
+                    src={mediaPreview}
                     alt="Upload preview"
                     style={{ width: '100%', height: 'auto', maxHeight: '250px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                   />
                   <button
                     type="button"
-                    onClick={removeImage}
+                    onClick={removeMedia}
                     style={{
                       position: 'absolute',
                       top: '0.75rem',
@@ -984,9 +984,9 @@ export default function NewPostPage() {
                       </div>
                       {/* 画像 */}
                       <div style={{ width: '100%', aspectRatio: '1/1', background: '#262626', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {imagePreview ? (
+                        {mediaPreview ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <>{mediaType === 'video' ? <video src={mediaPreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline /> : <img src={mediaPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</>
                         ) : (
                           <ImageIcon size={48} style={{ color: '#555' }} />
                         )}
@@ -1022,13 +1022,13 @@ export default function NewPostPage() {
                         {facebookText || '本文を入力してください。'}
                       </p>
                       {/* メディア */}
-                      {imagePreview && (
+                      {mediaPreview && (
                         <div style={{ width: '100%', maxHeight: '300px', overflow: 'hidden', border: '1px solid #2f3031', borderRadius: '4px' }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={imagePreview} alt="Facebook Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                          <>{mediaType === 'video' ? <video src={mediaPreview} style={{ width: '100%', height: 'auto', display: 'block' }} muted playsInline /> : <img src={mediaPreview} alt="Facebook Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />}</>
                         </div>
                       )}
-                      {linkUrl && !imagePreview && (
+                      {linkUrl && !mediaPreview && (
                         <div style={{ background: '#242526', border: '1px solid #3e4042', padding: '0.75rem', borderRadius: '4px' }}>
                           <div style={{ fontSize: '0.75rem', color: '#b0b3b8', textTransform: 'uppercase' }}>LINK</div>
                           <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e4e6eb', marginTop: '0.15rem' }}>{linkUrl}</div>
@@ -1053,10 +1053,10 @@ export default function NewPostPage() {
                             {twitterText || 'ツイート本文を入力してください。'}
                           </p>
                           {/* メディア */}
-                          {imagePreview && (
+                          {mediaPreview && (
                             <div style={{ width: '100%', maxHeight: '250px', overflow: 'hidden', border: '1px solid #2f3336', borderRadius: '16px' }}>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={imagePreview} alt="X Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                              <>{mediaType === 'video' ? <video src={mediaPreview} style={{ width: '100%', height: 'auto', display: 'block' }} muted playsInline /> : <img src={mediaPreview} alt="X Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />}</>
                             </div>
                           )}
                           {/* アクションバー */}
@@ -1076,10 +1076,10 @@ export default function NewPostPage() {
                         Google検索・マップ上の表示
                       </div>
                       <div style={{ background: '#1e1f20', border: '1px solid #3c4043', borderRadius: '8px', overflow: 'hidden' }}>
-                        {imagePreview && (
+                        {mediaPreview && (
                           <div style={{ width: '100%', height: '160px', overflow: 'hidden' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={imagePreview} alt="Google Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <>{mediaType === 'video' ? <video src={mediaPreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline /> : <img src={mediaPreview} alt="Google Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</>
                           </div>
                         )}
                         <div style={{ padding: '1rem' }}>
