@@ -14,6 +14,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, GoogleBusinessIcon, TwitterIcon } from '@/components/Icons';
+import { storage } from '@/lib/firebase/client';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import AIPostModal from '@/components/AIPostModal';
 import AILoadingState from '@/components/AILoadingState';
 
@@ -55,8 +57,11 @@ export default function NewPostPage() {
   const [title, setTitle] = useState('');
   const [baseText, setBaseText] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [publishMethod, setPublishMethod] = useState<'now' | 'schedule'>('now');
   const [scheduledAt, setScheduledAt] = useState('');
   
@@ -169,81 +174,65 @@ export default function NewPostPage() {
     }
   };
 
-  // 画像の処理 (Base64への変換 ＆ クライアント側での圧縮)
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // メディア（画像・動画）の処理とFirebase Storageへのアップロード
+  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const img = new Image();
-      img.onload = () => {
-        // 最大解像度を1200pxに制限（SNS投稿用に十分なサイズ）
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
-        let width = img.width;
-        let height = img.height;
+    if (!file) return;
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        
-        // Instagramの許容アスペクト比 (0.8 〜 1.91)
-        const MIN_RATIO = 0.8;   // 4:5
-        const MAX_RATIO = 1.91;  // 1.91:1
-        const currentRatio = width / height;
-
-        let canvasWidth = width;
-        let canvasHeight = height;
-        let offsetX = 0;
-        let offsetY = 0;
-
-        if (currentRatio > MAX_RATIO) {
-          // 極端に横長の場合：縦に余白（白）を追加してアスペクト比を1.91にする
-          canvasHeight = Math.round(width / MAX_RATIO);
-          offsetY = Math.round((canvasHeight - height) / 2);
-        } else if (currentRatio < MIN_RATIO) {
-          // 極端に縦長の場合：横に余白（白）を追加してアスペクト比を0.8にする
-          canvasWidth = Math.round(height * MIN_RATIO);
-          offsetX = Math.round((canvasWidth - width) / 2);
-        }
-
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          // 背景を白で塗りつぶす
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-          
-          // 元の画像を中央に描画
-          ctx.drawImage(img, offsetX, offsetY, width, height);
-          
-          // 画質80%のJPEG形式に圧縮してBase64化（Firestoreの1MB制限を回避するため）
-          const base64String = canvas.toDataURL('image/jpeg', 0.8);
-          setImagePreview(base64String);
-          setImageUrl(base64String);
-        }
-      };
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
+    // ファイルサイズチェック (500MB = 500 * 1024 * 1024 bytes)
+    const MAX_SIZE = 500 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setError('ファイルサイズは500MB以下にしてください。');
+      return;
     }
+
+    const isVideo = file.type.startsWith('video/');
+    setMediaType(isVideo ? 'video' : 'image');
+
+    // プレビュー表示用
+    const objectUrl = URL.createObjectURL(file);
+    setMediaPreview(objectUrl);
+
+    // Firebase Storageへアップロード
+    setIsUploading(true);
+    setError(null);
+    setUploadProgress(0);
+
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExtension}`;
+    const storageRef = ref(storage, `uploads/${fileName}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(Math.round(progress));
+      },
+      (error) => {
+        console.error('Upload failed:', error);
+        setError('ファイルのアップロードに失敗しました。');
+        setIsUploading(false);
+        setMediaPreview(null);
+      },
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setMediaUrl(downloadURL);
+        } catch (err) {
+          console.error('Failed to get download URL', err);
+          setError('ファイルURLの取得に失敗しました。');
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    );
   };
 
-  const removeImage = () => {
-    setImagePreview(null);
-    setImageUrl('');
+  const removeMedia = () => {
+    setMediaPreview(null);
+    setMediaUrl('');
+    setUploadProgress(0);
   };
 
   // 送信処理
@@ -266,8 +255,13 @@ export default function NewPostPage() {
     }
 
     // Instagram は画像が必須
-    if (platforms.instagram && !imageUrl) {
-      setError('Instagramへの投稿には画像が必須です。');
+    if (platforms.instagram && !mediaUrl) {
+      setError('Instagramへの投稿には画像または動画が必須です。');
+      return;
+    }
+
+    if (isUploading) {
+      setError('メディアのアップロード中です。完了するまでお待ちください。');
       return;
     }
 
@@ -304,8 +298,10 @@ export default function NewPostPage() {
           instagram_text: platforms.instagram ? instagramText : null,
           facebook_text: platforms.facebook ? facebookText : null,
           google_business_text: platforms.google_business_profile ? googleText : null,
+          twitter_text: platforms.twitter ? twitterText : null,
           link_url: linkUrl || null,
-          image_url: imageUrl || null,
+          media_url: mediaUrl || null,
+          media_type: mediaUrl ? mediaType : null,
           platforms: selectedPlatforms,
           scheduled_at: publishMethod === 'schedule' ? new Date(scheduledAt).toISOString() : null,
         }),

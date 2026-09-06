@@ -196,8 +196,9 @@ export function formatTwitterErrorMessage(rawError: string): string {
 export async function publishToTwitter(
   accessTokenEncrypted: string,
   message: string,
-  imageUrl: string | null,
-  title: string | null = null
+  mediaUrl: string | null,
+  title: string | null = null,
+  mediaType: 'image' | 'video' | null = null
 ): Promise<PublishResult> {
   // 1. データベースからアカウント情報の取得およびトークンの更新
   let decryptedToken = '';
@@ -247,21 +248,21 @@ export async function publishToTwitter(
     // ここでは、本番環境で画像アップロードが試みられた場合の処理フローを構築します。
     let mediaIds: string[] = [];
     
-    if (imageUrl) {
+    if (mediaUrl) {
       try {
         // 画像がBase64の場合はバイナリに変換してアップロード
         let imageBuffer: Buffer | null = null;
         let mimeType = 'image/jpeg';
         
-        if (imageUrl.startsWith('data:')) {
-          const matches = imageUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (mediaUrl.startsWith('data:')) {
+          const matches = mediaUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
           if (matches && matches.length === 3) {
             mimeType = matches[1];
             imageBuffer = Buffer.from(matches[2], 'base64');
           }
         } else {
           // URLの場合はフェッチして取得
-          const imgRes = await fetch(imageUrl);
+          const imgRes = await fetch(mediaUrl);
           if (imgRes.ok) {
             imageBuffer = Buffer.from(await imgRes.arrayBuffer());
             mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
@@ -269,27 +270,85 @@ export async function publishToTwitter(
         }
 
         if (imageBuffer) {
-          // X v1.1 Media Upload API (OAuth 2.0 User Context でも一部対応、またはOAuth 1.0a経由)
-          // 簡易実装としてXのメディアアップロードエンドポイントへPOST
-          const formData = new FormData();
-          const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
-          formData.append('media', blob);
+          // 簡易チャンクアップロード (INIT, APPEND, FINALIZE) の実装
+          if (mediaType === 'video') {
+            // INIT
+            const initFormData = new URLSearchParams();
+            initFormData.append('command', 'INIT');
+            initFormData.append('total_bytes', String(imageBuffer.length));
+            initFormData.append('media_type', mimeType);
 
-          const mediaResponse = await fetch('https://upload.twitter.com/1.1/media/upload.json', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${decryptedToken}`,
-            },
-            body: formData,
-          });
+            const initRes = await fetch('https://upload.twitter.com/1.1/media/upload.json', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${decryptedToken}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: initFormData.toString()
+            });
 
-          if (mediaResponse.ok) {
-            const mediaData = await mediaResponse.json();
-            if (mediaData.media_id_string) {
-              mediaIds.push(mediaData.media_id_string);
+            if (initRes.ok) {
+              const initData = await initRes.json();
+              const mediaId = initData.media_id_string;
+
+              // APPEND (ここでは簡単のためチャンクを1回で送る。本来は5MB等で分割する)
+              const appendFormData = new FormData();
+              appendFormData.append('command', 'APPEND');
+              appendFormData.append('media_id', mediaId);
+              appendFormData.append('segment_index', '0');
+              const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
+              appendFormData.append('media', blob);
+
+              await fetch('https://upload.twitter.com/1.1/media/upload.json', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${decryptedToken}`,
+                },
+                body: appendFormData,
+              });
+
+              // FINALIZE
+              const finalizeFormData = new URLSearchParams();
+              finalizeFormData.append('command', 'FINALIZE');
+              finalizeFormData.append('media_id', mediaId);
+              
+              const finalizeRes = await fetch('https://upload.twitter.com/1.1/media/upload.json', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${decryptedToken}`,
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: finalizeFormData.toString()
+              });
+
+              if (finalizeRes.ok) {
+                mediaIds.push(mediaId);
+              }
+            } else {
+              console.warn('X Video INIT failed', await initRes.text());
             }
           } else {
-            console.warn('X Media upload failed, posting text-only instead. Status:', mediaResponse.status);
+            // Image upload (Simple POST)
+            const formData = new FormData();
+            const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
+            formData.append('media', blob);
+
+            const mediaResponse = await fetch('https://upload.twitter.com/1.1/media/upload.json', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${decryptedToken}`,
+              },
+              body: formData,
+            });
+
+            if (mediaResponse.ok) {
+              const mediaData = await mediaResponse.json();
+              if (mediaData.media_id_string) {
+                mediaIds.push(mediaData.media_id_string);
+              }
+            } else {
+              console.warn('X Image upload failed, posting text-only instead. Status:', mediaResponse.status);
+            }
           }
         }
       } catch (mediaErr) {

@@ -86,9 +86,10 @@ export async function publishToGoogleBusiness(
   locationId: string,
   summary: string,
   linkUrl: string | null,
-  imageUrl: string | null,
+  mediaUrl: string | null,
   postId?: string,
-  host?: string
+  host?: string,
+  mediaType: 'image' | 'video' | null = null
 ): Promise<PublishResult> {
   // 1. トークンの復号化とモックの分岐（ダミー環境チェック）
   let decryptedToken = '';
@@ -134,17 +135,17 @@ export async function publishToGoogleBusiness(
     }
     const accessToken = await getFreshGoogleAccessToken(account);
 
-    let publicImageUrl = imageUrl;
-    if (imageUrl && postId && host) {
+    let publicMediaUrl = mediaUrl;
+    if (mediaUrl && postId && host) {
       const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
-      const isExternalUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+      const isExternalUrl = mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://');
 
       if (isLocalhost && isExternalUrl) {
         // ローカル環境かつ既に外部の公開URLであれば、Googleクローラーが直接フェッチできるようそのまま渡す
-        publicImageUrl = imageUrl;
+        publicMediaUrl = mediaUrl;
       } else {
         const protocol = host.includes('localhost') ? 'http' : 'https';
-        publicImageUrl = `${protocol}://${host}/api/posts/${postId}/image`;
+        publicMediaUrl = `${protocol}://${host}/api/posts/${postId}/image`;
       }
     }
 

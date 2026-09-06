@@ -8,9 +8,10 @@ export async function publishToInstagram(
   accessTokenEncrypted: string,
   instagramAccountId: string,
   caption: string,
-  imageUrl: string,
+  mediaUrl: string,
   postId?: string,
-  host?: string
+  host?: string,
+  mediaType?: 'image' | 'video' | null
 ): Promise<PublishResult> {
   // 1. トークンの復号化
   let decryptedToken = '';
@@ -29,7 +30,7 @@ export async function publishToInstagram(
     process.env.META_APP_ID?.includes('dummy') || 
     !process.env.META_APP_ID;
 
-  if (!imageUrl) {
+  if (!mediaUrl) {
     return {
       status: 'failed',
       error_message: 'Instagramへの投稿には画像が必須です。',
@@ -47,10 +48,10 @@ export async function publishToInstagram(
 
   // 3. 本物リクエストの実行
   try {
-    let publicImageUrl = imageUrl;
-    if (imageUrl && imageUrl.startsWith('data:') && postId && host) {
+    let publicMediaUrl = mediaUrl;
+    if (mediaUrl && mediaUrl.startsWith('data:') && postId && host) {
       const protocol = host.includes('localhost') ? 'http' : 'https';
-      publicImageUrl = `${protocol}://${host}/api/posts/${postId}/image`;
+      publicMediaUrl = `${protocol}://${host}/api/posts/${postId}/image`;
     }
 
     // 1. Create Media Container
@@ -61,7 +62,7 @@ export async function publishToInstagram(
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        image_url: publicImageUrl,
+        ...(mediaType === 'video' ? { video_url: publicMediaUrl, media_type: 'VIDEO' } : { image_url: publicMediaUrl }),
         caption: caption,
         access_token: decryptedToken,
       }).toString(),

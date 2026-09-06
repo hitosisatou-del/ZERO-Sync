@@ -10,7 +10,8 @@ export interface Post {
   google_business_text: string | null;
   twitter_text: string | null;
   link_url: string | null;
-  image_url: string | null;
+  media_url: string | null;
+  media_type?: 'image' | 'video' | null;
   created_at: string;
   updated_at: string;
   scheduled_at?: string | null;
@@ -67,7 +68,7 @@ let mockPosts: Post[] = [
     google_business_text: '【都城ドライビングスクール】夏の免許取得キャンペーン開始！\n本日より学生向け夏休み特別キャンペーンがスタート。短期集中プランや紹介割引などお得な特典をご用意しています。この夏、一生ものの免許を手に入れませんか？',
     twitter_text: '【夏の免許取得キャンペーン開始！】本日より夏休み特別キャンペーンがスタートします！短期集中プランや紹介割引特典も充実。この夏、都城ドライビングスクールで一生ものの運転免許を手に入れませんか？詳細はサイトをチェック！ #都城 #教習所 #免許取得',
     link_url: 'https://example.com/summer-campaign',
-    image_url: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=800&auto=format&fit=crop',
+    media_url: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=800&auto=format&fit=crop',
     created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
     updated_at: new Date(Date.now() - 3600000 * 24).toISOString(),
   },
@@ -80,7 +81,7 @@ let mockPosts: Post[] = [
     google_business_text: '【都城ドライビングスクール】新しい教習車が納車されました！最新の安全機能を備えた快適な教習車で、皆様の運転免許取得をしっかりサポートします。ご予約お待ちしております！',
     twitter_text: '都城ドライビングスクールに新しい教習車が仲間入り！🚘最新の安全機能を備えたスタイリッシュな車両で、快適・安全な教習をサポートします。新しい車での教習を楽しみにしていてくださいね！✨ #都城 #教習所 #新車 #プリウス',
     link_url: null,
-    image_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800&auto=format&fit=crop',
+    media_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800&auto=format&fit=crop',
     created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
     updated_at: new Date(Date.now() - 3600000 * 48).toISOString(),
   },
@@ -93,7 +94,7 @@ let mockPosts: Post[] = [
     google_business_text: '【都城ドライビングスクール】秋の交通安全キャンペーン実施のお知らせ。安全意識向上のため、特別講習会を開催します。どなたでもご参加いただけます。安全第一で秋を過ごしましょう！',
     twitter_text: '【秋の交通安全キャンペーン】来週から秋の全国交通安全運動が始まります。都城ドライビングスクールでは特別講習会を実施！正しい知識とマナーで事故ゼロを目指しましょう。ご参加お待ちしています！🍂🚘 #都城 #教習所 #交通安全 #宮崎',
     link_url: 'https://example.com/safety-campaign',
-    image_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop',
+    media_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     scheduled_at: new Date(Date.now() + 3600000 * 26).toISOString(),
@@ -247,7 +248,8 @@ export class DBService {
           google_business_text: data.google_business_text || null,
           twitter_text: data.twitter_text || null,
           link_url: data.link_url || null,
-          image_url: data.image_url || null,
+          media_url: data.media_url || null,
+          media_type: data.media_type || null,
           created_at: data.created_at || new Date().toISOString(),
           updated_at: data.updated_at || new Date().toISOString(),
           scheduled_at: data.scheduled_at || null,
@@ -307,7 +309,8 @@ export class DBService {
         google_business_text: data.google_business_text || null,
         twitter_text: data.twitter_text || null,
         link_url: data.link_url || null,
-        image_url: data.image_url || null,
+        media_url: data.media_url || null,
+          media_type: data.media_type || null,
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
         scheduled_at: data.scheduled_at || null,
@@ -402,7 +405,7 @@ export class DBService {
         google_business_text: postData.google_business_text !== undefined ? postData.google_business_text : null,
         twitter_text: postData.twitter_text !== undefined ? postData.twitter_text : null,
         link_url: postData.link_url !== undefined ? postData.link_url : null,
-        image_url: postData.image_url !== undefined ? postData.image_url : null,
+        media_url: postData.media_url !== undefined ? postData.media_url : null,
         created_at: nowStr,
         updated_at: nowStr,
         results: resultsMap,
@@ -734,7 +737,8 @@ export class DBService {
         google_business_text: data.google_business_text || null,
         twitter_text: data.twitter_text || null,
         link_url: data.link_url || null,
-        image_url: data.image_url || null,
+        media_url: data.media_url || null,
+          media_type: data.media_type || null,
         created_at: data.created_at || nowStr,
         updated_at: data.updated_at || nowStr,
       };

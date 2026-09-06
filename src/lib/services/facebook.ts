@@ -14,9 +14,10 @@ export async function publishToFacebook(
   pageId: string,
   message: string,
   linkUrl: string | null,
-  imageUrl: string | null,
+  mediaUrl: string | null,
   postId?: string,
-  host?: string
+  host?: string,
+  mediaType?: 'image' | 'video' | null
 ): Promise<PublishResult> {
   // 1. トークンの復号化
   let decryptedToken = '';
@@ -46,29 +47,35 @@ export async function publishToFacebook(
 
   // 3. 本物リクエストの実行
   try {
-    let publicImageUrl = imageUrl;
-    if (imageUrl && imageUrl.startsWith('data:') && postId && host) {
+    let publicMediaUrl = mediaUrl;
+    if (mediaUrl && mediaUrl.startsWith('data:') && postId && host) {
       const protocol = host.includes('localhost') ? 'http' : 'https';
-      publicImageUrl = `${protocol}://${host}/api/posts/${postId}/image`;
+      publicMediaUrl = `${protocol}://${host}/api/posts/${postId}/image`;
     }
 
-    const url = publicImageUrl
-      ? `https://graph.facebook.com/v20.0/${pageId}/photos`
-      : `https://graph.facebook.com/v20.0/${pageId}/feed`;
-
+    
+    let url = `https://graph.facebook.com/v20.0/${pageId}/feed`;
     const body: Record<string, string> = {
       access_token: decryptedToken,
     };
 
-    if (publicImageUrl) {
-      body.url = publicImageUrl;
-      body.caption = message;
+    if (publicMediaUrl) {
+      if (mediaType === 'video') {
+        url = `https://graph.facebook.com/v20.0/${pageId}/videos`;
+        body.file_url = publicMediaUrl;
+        body.description = message;
+      } else {
+        url = `https://graph.facebook.com/v20.0/${pageId}/photos`;
+        body.url = publicMediaUrl;
+        body.caption = message;
+      }
     } else {
       body.message = message;
       if (linkUrl) {
         body.link = linkUrl;
       }
     }
+
 
     const response = await fetch(url, {
       method: 'POST',

@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
       google_business_text,
       twitter_text,
       link_url,
-      image_url,
+      media_url,
+      media_type,
       platforms, // Array<'instagram' | 'facebook' | 'google_business_profile' | 'twitter'>
       scheduled_at,
       is_ai,
@@ -40,7 +41,8 @@ export async function POST(request: NextRequest) {
         google_business_text: google_business_text || null,
         twitter_text: twitter_text || null,
         link_url: link_url || null,
-        image_url: image_url || null,
+        media_url: media_url || null,
+        media_type: media_type || null,
         scheduled_at: scheduled_at || null,
         is_ai: is_ai || false,
       },
@@ -77,9 +79,10 @@ export async function POST(request: NextRequest) {
             account.access_token,
             account.external_account_id || '',
             instagram_text || base_text,
-            image_url || '',
+            media_url || '',
             post.id,
-            host
+            host,
+            media_type
           );
           await DBService.updatePostResult(post.id, 'instagram', result);
         } else if (platform === 'facebook') {
@@ -89,9 +92,10 @@ export async function POST(request: NextRequest) {
             account.external_account_id || '',
             facebook_text || base_text,
             link_url,
-            image_url,
+            media_url,
             post.id,
-            host
+            host,
+            media_type
           );
           await DBService.updatePostResult(post.id, 'facebook', result);
         } else if (platform === 'google_business_profile') {
@@ -101,9 +105,10 @@ export async function POST(request: NextRequest) {
             account.external_account_id || '',
             google_business_text || base_text,
             link_url,
-            image_url,
+            media_url,
             post.id,
-            host
+            host,
+            media_type
           );
           await DBService.updatePostResult(post.id, 'google_business_profile', result);
         } else if (platform === 'twitter') {
@@ -111,8 +116,9 @@ export async function POST(request: NextRequest) {
           const result = await publishToTwitter(
             account.access_token,
             twitter_text || base_text,
-            image_url,
-            title
+            media_url,
+            title,
+            media_type
           );
           await DBService.updatePostResult(post.id, 'twitter', result);
         }
