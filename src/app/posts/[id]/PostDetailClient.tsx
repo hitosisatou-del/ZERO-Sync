@@ -280,7 +280,7 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                 ) : (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img 
-                    src={post.media_url} 
+                    src={`https://wsrv.nl/?url=${encodeURIComponent(post.media_url)}&w=800&fit=contain&output=webp`} 
                     alt={post.title || 'Post image'} 
                     style={{ maxWidth: '100%', width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                   />

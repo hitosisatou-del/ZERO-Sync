@@ -282,9 +282,13 @@ export default async function DashboardPage() {
                         ) : (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img 
-                            src={post.media_url} 
+                            src={`https://wsrv.nl/?url=${encodeURIComponent(post.media_url)}&w=240&h=240&fit=cover&output=webp`} 
                             alt={post.title || 'Post image'} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => {
+                              // フォールバック: プロキシが失敗した場合は元のURLを表示
+                              (e.target as HTMLImageElement).src = post.media_url!;
+                            }}
                           />
                         )}
                       </div>
