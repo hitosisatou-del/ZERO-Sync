@@ -272,11 +272,12 @@ export default async function DashboardPage() {
                         {post.media_type === 'video' || (post.media_url && post.media_url.toLowerCase().includes('.mp4')) ? (
                           <video 
                             src={post.media_url} 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#000' }}
                             muted
                             loop
                             playsInline
-                            autoPlay
+                            controls
+                            preload="metadata"
                           />
                         ) : (
                           /* eslint-disable-next-line @next/next/no-img-element */
