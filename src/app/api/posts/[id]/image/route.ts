@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DBService } from '@/lib/services/db';
-import sharp from 'sharp';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -15,7 +14,8 @@ const INSTAGRAM_MAX_RATIO = 1.91; // 1.91:1（横長の限界）
  * @returns クロップ済みのバッファ、または調整不要ならnull
  */
 async function adjustForInstagram(
-  imageBuffer: Buffer
+  imageBuffer: Buffer,
+  sharp: any
 ): Promise<Buffer | null> {
   const metadata = await sharp(imageBuffer).metadata();
   const width = metadata.width;
@@ -131,9 +131,11 @@ export async function GET(
 
     // sharpでJPEGに変換（Instagram/Facebook Graph API互換性のため）
     try {
+      const sharp = require('sharp');
+
       // Instagram用：アスペクト比の自動調整（4:5〜1.91:1の範囲にセンタークロップ）
       if (platform === 'instagram') {
-        const adjustedBuffer = await adjustForInstagram(imageBuffer);
+        const adjustedBuffer = await adjustForInstagram(imageBuffer, sharp);
         if (adjustedBuffer) {
           imageBuffer = adjustedBuffer;
         }
@@ -150,8 +152,28 @@ export async function GET(
         },
       });
     } catch (sharpError) {
-      // sharpが使えない場合はそのまま返す
-      console.error('Sharp conversion failed, returning original:', sharpError);
+      // sharpが使えない場合は画像プロキシサービス（wsrv.nl）をフォールバックとして使用
+      console.error('Sharp conversion failed, falling back to wsrv.nl proxy:', sharpError);
+
+      if (platform === 'instagram' && !mediaUrl.startsWith('data:')) {
+        const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(mediaUrl)}&w=1080&h=1350&fit=cover&output=jpg`;
+        try {
+          const proxyResponse = await fetch(proxyUrl);
+          if (proxyResponse.ok) {
+            const proxyBuffer = await proxyResponse.arrayBuffer();
+            return new Response(Buffer.from(proxyBuffer), {
+              headers: {
+                'Content-Type': 'image/jpeg',
+                'Cache-Control': 'public, max-age=86400, must-revalidate',
+              },
+            });
+          }
+        } catch (e) {
+          console.error('wsrv.nl fallback failed:', e);
+        }
+      }
+
+      // 最終フォールバック：元画像をそのまま返す
       return new Response(new Uint8Array(imageBuffer), {
         headers: {
           'Content-Type': 'image/jpeg',
