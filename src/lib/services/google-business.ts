@@ -234,9 +234,17 @@ export async function publishToGoogleBusiness(
     const postData = await postResponse.json();
     if (!postResponse.ok || postData.error) {
       console.error('Google Local Post Creation Error:', postData.error);
+      
+      let errorMsg = postData.error?.message || 'Failed to create Google local post.';
+      
+      // Google Business Profile often returns "Internal error encountered." when a video exceeds 30 seconds or 75MB.
+      if (mediaType === 'video' && errorMsg.includes('Internal error')) {
+        errorMsg = '動画の長さまたは容量が制限を超えています。Googleビジネスプロフィールの動画は最大30秒、75MB以内に収める必要があります。';
+      }
+
       return {
         status: 'failed',
-        error_message: postData.error?.message || 'Failed to create Google local post.',
+        error_message: errorMsg,
       };
     }
 

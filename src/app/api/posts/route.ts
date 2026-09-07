@@ -5,6 +5,8 @@ import { publishToInstagram } from '@/lib/services/instagram';
 import { publishToGoogleBusiness } from '@/lib/services/google-business';
 import { publishToTwitter } from '@/lib/services/twitter';
 
+export const maxDuration = 60; // Allow up to 60 seconds for video processing
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
