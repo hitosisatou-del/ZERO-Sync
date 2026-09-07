@@ -20,19 +20,17 @@ export async function GET(
     }
 
     const mediaUrl = postData.post.media_url;
+    const mediaType = postData.post.media_type;
 
-    // Base64データURLの場合はバイナリに変換して返す
-    if (mediaUrl.startsWith('data:')) {
-      const matches = mediaUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
-      if (!matches || matches.length !== 3) {
-        return new Response('Invalid image data format', { status: 400 });
+    // 動画の場合はそのままプロキシ（変換不要）
+    if (mediaType === 'video') {
+      const videoResponse = await fetch(mediaUrl);
+      if (!videoResponse.ok) {
+        return new Response('Failed to fetch video', { status: videoResponse.status });
       }
-
-      const contentType = matches[1];
-      const base64Data = matches[2];
-      const buffer = Buffer.from(base64Data, 'base64');
-
-      return new Response(buffer, {
+      const contentType = videoResponse.headers.get('content-type') || 'video/mp4';
+      const arrayBuffer = await videoResponse.arrayBuffer();
+      return new Response(Buffer.from(arrayBuffer), {
         headers: {
           'Content-Type': contentType,
           'Cache-Control': 'public, max-age=86400, must-revalidate',
@@ -40,27 +38,54 @@ export async function GET(
       });
     }
 
-    // 通常のURLの場合はフェッチしてプロキシする
-    try {
-      const imageResponse = await fetch(mediaUrl);
-      if (!imageResponse.ok) {
-        console.error(`Failed to fetch original image from URL: ${mediaUrl}. HTTP Status: ${imageResponse.status}`);
-        return new Response('Failed to fetch original image', { status: imageResponse.status });
-      }
-      const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
-      const arrayBuffer = await imageResponse.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+    // 画像データの取得
+    let imageBuffer: Buffer;
 
-      return new Response(buffer, {
+    if (mediaUrl.startsWith('data:')) {
+      // Base64データURLの場合
+      const matches = mediaUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        return new Response('Invalid image data format', { status: 400 });
+      }
+      imageBuffer = Buffer.from(matches[2], 'base64');
+    } else {
+      // 通常のURL（Firebase Storage等）の場合
+      try {
+        const imageResponse = await fetch(mediaUrl);
+        if (!imageResponse.ok) {
+          console.error(`Failed to fetch image from URL: ${mediaUrl}. HTTP Status: ${imageResponse.status}`);
+          return new Response('Failed to fetch original image', { status: imageResponse.status });
+        }
+        const arrayBuffer = await imageResponse.arrayBuffer();
+        imageBuffer = Buffer.from(arrayBuffer);
+      } catch (e) {
+        console.error('Error fetching external image:', e);
+        return NextResponse.redirect(mediaUrl);
+      }
+    }
+
+    // sharpでJPEGに変換（Instagram/Facebook Graph API互換性のため）
+    try {
+      const sharp = (await import('sharp')).default;
+      const jpegBuffer = await sharp(imageBuffer)
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
+      return new Response(jpegBuffer, {
         headers: {
-          'Content-Type': contentType,
+          'Content-Type': 'image/jpeg',
           'Cache-Control': 'public, max-age=86400, must-revalidate',
         },
       });
-    } catch (e) {
-      console.error('Error proxying external image:', e);
-      // エラー時のフォールバックとしてリダイレクト
-      return NextResponse.redirect(mediaUrl);
+    } catch (sharpError) {
+      // sharpが使えない場合はそのまま返す
+      console.error('Sharp conversion failed, returning original:', sharpError);
+      return new Response(new Uint8Array(imageBuffer), {
+        headers: {
+          'Content-Type': 'image/jpeg',
+          'Cache-Control': 'public, max-age=86400, must-revalidate',
+        },
+      });
     }
   } catch (error: any) {
     console.error('Error serving image:', error);
