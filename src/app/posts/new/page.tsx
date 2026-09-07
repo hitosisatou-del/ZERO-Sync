@@ -456,8 +456,28 @@ export default function NewPostPage() {
                   <img
                     src={mediaPreview}
                     alt="Upload preview"
-                    style={{ width: '100%', height: 'auto', maxHeight: '250px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+                    style={{ width: '100%', height: 'auto', maxHeight: '250px', objectFit: 'contain', display: 'block', margin: '0 auto', opacity: isUploading ? 0.5 : 1 }}
                   />
+                  {isUploading && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      zIndex: 10
+                    }}>
+                      <Loader2 size={24} className="spin-animation-fast" style={{ marginBottom: '0.5rem' }} />
+                      <span>アップロード中... {uploadProgress}%</span>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={removeMedia}
@@ -474,7 +494,8 @@ export default function NewPostPage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      color: '#fff'
+                      color: '#fff',
+                      zIndex: 20
                     }}
                   >
                     <X size={16} />
