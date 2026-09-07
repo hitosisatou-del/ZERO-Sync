@@ -58,19 +58,30 @@ export async function publishToInstagram(
 
     // 1. Create Media Container
     const containerUrl = `https://graph.facebook.com/v20.0/${instagramAccountId}/media`;
+    const containerParams: Record<string, string> = {
+      ...(mediaType === 'video' ? { video_url: publicMediaUrl, media_type: 'VIDEO' } : { image_url: publicMediaUrl }),
+      caption: caption,
+      access_token: decryptedToken,
+    };
+
+    console.log('[Instagram Debug] Container URL:', containerUrl);
+    console.log('[Instagram Debug] image_url / video_url:', publicMediaUrl);
+    console.log('[Instagram Debug] mediaType:', mediaType);
+    console.log('[Instagram Debug] instagramAccountId:', instagramAccountId);
+    console.log('[Instagram Debug] params keys:', Object.keys(containerParams));
+
     const containerRes = await fetch(containerUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        ...(mediaType === 'video' ? { video_url: publicMediaUrl, media_type: 'VIDEO' } : { image_url: publicMediaUrl }),
-        caption: caption,
-        access_token: decryptedToken,
-      }).toString(),
+      body: new URLSearchParams(containerParams).toString(),
     });
 
     const containerData = await containerRes.json();
+    console.log('[Instagram Debug] Container Response Status:', containerRes.status);
+    console.log('[Instagram Debug] Container Response Data:', JSON.stringify(containerData));
+
     if (!containerRes.ok || containerData.error) {
       console.error('Instagram Container Creation Error:', containerData.error);
       return {
