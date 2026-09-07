@@ -48,7 +48,9 @@ export async function publishToFacebook(
   // 3. 本物リクエストの実行
   try {
     let publicMediaUrl = mediaUrl;
-    if (mediaUrl && mediaUrl.startsWith('data:') && postId && host) {
+    // Facebook Graph APIは外部からメディアURLをフェッチするため、
+    // 確実にアクセス可能なプロキシURLを使用する
+    if (mediaUrl && postId && host) {
       const protocol = host.includes('localhost') ? 'http' : 'https';
       publicMediaUrl = `${protocol}://${host}/api/posts/${postId}/image`;
     }

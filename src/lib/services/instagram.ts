@@ -49,7 +49,9 @@ export async function publishToInstagram(
   // 3. 本物リクエストの実行
   try {
     let publicMediaUrl = mediaUrl;
-    if (mediaUrl && mediaUrl.startsWith('data:') && postId && host) {
+    // Instagram Graph APIはimage_urlを外部からフェッチするため、
+    // 確実にアクセス可能なプロキシURLを使用する
+    if (postId && host) {
       const protocol = host.includes('localhost') ? 'http' : 'https';
       publicMediaUrl = `${protocol}://${host}/api/posts/${postId}/image`;
     }
