@@ -99,8 +99,37 @@ export async function publishToInstagram(
 
     const creationId = containerData.id;
 
-    // 2. Wait 3 seconds for Instagram to process the image container
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // 2. Wait for Instagram to process the container (especially important for videos/REELS)
+    let containerStatus = 'IN_PROGRESS';
+    let attempts = 0;
+    const maxAttempts = 15; // Max 30 seconds
+
+    while (containerStatus === 'IN_PROGRESS' && attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      attempts++;
+
+      const statusUrl = `https://graph.facebook.com/v20.0/${creationId}?fields=status_code&access_token=${decryptedToken}`;
+      const statusRes = await fetch(statusUrl);
+      const statusData = await statusRes.json();
+
+      if (statusData.status_code) {
+        containerStatus = statusData.status_code;
+      }
+
+      if (containerStatus === 'ERROR' || containerStatus === 'EXPIRED') {
+        return {
+          status: 'failed',
+          error_message: 'Instagram media processing failed or expired.',
+        };
+      }
+    }
+
+    if (containerStatus !== 'FINISHED') {
+      return {
+        status: 'failed',
+        error_message: 'Media processing timed out. Please try again later.',
+      };
+    }
 
     // 3. Publish Media Container
     const publishUrl = `https://graph.facebook.com/v20.0/${instagramAccountId}/media_publish`;
