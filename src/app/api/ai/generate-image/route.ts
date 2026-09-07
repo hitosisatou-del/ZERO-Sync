@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +52,8 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(base64Data, 'base64');
 
-    // Sharpでリサイズ＆圧縮（DB容量制限対策: 1024x1024 -> 800x800, JPEG 70%）
+    // Sharpでリサイズ＆圧縮
+    const sharp = (await import('sharp')).default;
     const compressedBuffer = await sharp(buffer)
       .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 75 })
