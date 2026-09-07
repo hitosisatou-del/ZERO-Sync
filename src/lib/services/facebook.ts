@@ -56,13 +56,18 @@ export async function publishToFacebook(
     }
 
     
+    let actualMediaType = mediaType;
+    if (!actualMediaType && mediaUrl && mediaUrl.toLowerCase().includes('.mp4')) {
+      actualMediaType = 'video';
+    }
+    
     let url = `https://graph.facebook.com/v20.0/${pageId}/feed`;
     const body: Record<string, string> = {
       access_token: decryptedToken,
     };
 
     if (publicMediaUrl) {
-      if (mediaType === 'video') {
+      if (actualMediaType === 'video') {
         url = `https://graph.facebook.com/v20.0/${pageId}/videos`;
         body.file_url = publicMediaUrl;
         body.description = message;
@@ -167,12 +172,12 @@ export async function deleteFromFacebook(
 export async function getFacebookMetrics(
   accessTokenEncrypted: string,
   externalPostId: string
-): Promise<{ likes: number; comments: number; shares: number }> {
+): Promise<{ likes: number; comments: number }> {
   let decryptedToken = '';
   try {
     decryptedToken = decrypt(accessTokenEncrypted);
   } catch (e) {
-    return { likes: 0, comments: 0, shares: 0 };
+    return { likes: 0, comments: 0 };
   }
 
   const isDummyToken = decryptedToken === 'encrypted_dummy_token' || decryptedToken.includes('dummy');
@@ -184,28 +189,26 @@ export async function getFacebookMetrics(
     return {
       likes: Math.floor(Math.random() * 60) + 5,
       comments: Math.floor(Math.random() * 10),
-      shares: Math.floor(Math.random() * 5),
     };
   }
 
   try {
-    const url = `https://graph.facebook.com/v20.0/${externalPostId}?fields=reactions.summary(true).limit(0),comments.summary(true).limit(0),shares&access_token=${decryptedToken}`;
+    const url = `https://graph.facebook.com/v20.0/${externalPostId}?fields=reactions.summary(true).limit(0),comments.summary(true).limit(0)&access_token=${decryptedToken}`;
     const res = await fetch(url);
     const data = await res.json();
 
     if (!res.ok || data.error) {
       console.error('Facebook Metrics Error:', data.error);
-      return { likes: 0, comments: 0, shares: 0 };
+      return { likes: 0, comments: 0 };
     }
 
     return {
       likes: data.reactions?.summary?.total_count || 0,
       comments: data.comments?.summary?.total_count || 0,
-      shares: data.shares?.count || 0,
     };
   } catch (err) {
     console.error('Error fetching Facebook metrics:', err);
-    return { likes: 0, comments: 0, shares: 0 };
+    return { likes: 0, comments: 0 };
   }
 }
 

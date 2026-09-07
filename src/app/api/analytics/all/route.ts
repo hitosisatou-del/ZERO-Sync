@@ -74,7 +74,7 @@ export async function GET() {
             } else if (res.platform === 'facebook') {
               const m = await getFacebookMetrics(token, res.external_post_id);
               const reachEst = m.likes * 8 + 100;
-              const eng = m.likes + m.comments + m.shares;
+              const eng = m.likes + m.comments;
               platformStats.facebook = { ...m, reach: reachEst, engagement: eng };
               postReach += reachEst;
               postEngagement += eng;
@@ -172,7 +172,6 @@ export async function GET() {
     const facebookTotalReach = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.facebookReach, 0);
     const facebookTotalReactions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.facebookReactions, 0);
     const facebookTotalComments = postPerformanceList.reduce((sum: number, p) => sum + (p.platformStats.facebook?.comments || 0), 0);
-    const facebookTotalShares = postPerformanceList.reduce((sum: number, p) => sum + (p.platformStats.facebook?.shares || 0), 0);
 
     const twitterTotalImpressions = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.twitterImpressions, 0);
     const twitterTotalLikes = dailyTrend.reduce((sum: number, d: DailyTrendItem) => sum + d.twitterLikes, 0);
@@ -214,7 +213,6 @@ export async function GET() {
           totalReach: facebookTotalReach,
           totalReactions: facebookTotalReactions,
           totalComments: facebookTotalComments,
-          totalShares: facebookTotalShares,
         },
         twitter: {
           totalImpressions: twitterTotalImpressions,

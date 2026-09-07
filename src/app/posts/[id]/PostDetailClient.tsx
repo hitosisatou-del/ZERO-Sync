@@ -500,9 +500,6 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                   💬 <strong>{metrics.facebook.comments || 0}</strong> コメント
                                 </span>
-                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                  🔄 <strong>{metrics.facebook.shares || 0}</strong> シェア
-                                </span>
                               </>
                             )}
                             {result.platform === 'google_business_profile' && (

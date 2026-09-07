@@ -33,7 +33,7 @@ export async function publishToInstagram(
   if (!mediaUrl) {
     return {
       status: 'failed',
-      error_message: 'Instagramへの投稿には画像が必須です。',
+      error_message: 'Instagramへの投稿には画像が必須です。新規投稿作成画面から画像を添付してください。',
     };
   }
 
@@ -53,13 +53,18 @@ export async function publishToInstagram(
     // 確実にアクセス可能なプロキシURLを使用する
     if (postId && host) {
       const protocol = host.includes('localhost') ? 'http' : 'https';
-      publicMediaUrl = `${protocol}://${host}/api/posts/${postId}/image`;
+      publicMediaUrl = `${protocol}://${host}/api/posts/${postId}/image?platform=instagram`;
+    }
+
+    let actualMediaType = mediaType;
+    if (!actualMediaType && mediaUrl && mediaUrl.toLowerCase().includes('.mp4')) {
+      actualMediaType = 'video';
     }
 
     // 1. Create Media Container
     const containerUrl = `https://graph.facebook.com/v20.0/${instagramAccountId}/media`;
     const containerParams: Record<string, string> = {
-      ...(mediaType === 'video' ? { video_url: publicMediaUrl, media_type: 'VIDEO' } : { image_url: publicMediaUrl }),
+      ...(actualMediaType === 'video' ? { video_url: publicMediaUrl, media_type: 'VIDEO' } : { image_url: publicMediaUrl }),
       caption: caption,
       access_token: decryptedToken,
     };
