@@ -64,7 +64,9 @@ export async function publishToInstagram(
     // 1. Create Media Container
     const containerUrl = `https://graph.facebook.com/v20.0/${instagramAccountId}/media`;
     const containerParams: Record<string, string> = {
-      ...(actualMediaType === 'video' ? { video_url: publicMediaUrl, media_type: 'VIDEO' } : { image_url: publicMediaUrl }),
+      ...(actualMediaType === 'video' 
+          ? { video_url: publicMediaUrl, media_type: 'REELS', share_to_feed: 'true' } 
+          : { image_url: publicMediaUrl }),
       caption: caption,
       access_token: decryptedToken,
     };
