@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DBService } from '@/lib/services/db';
+import sharp from 'sharp';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -14,8 +15,7 @@ const INSTAGRAM_MAX_RATIO = 1.91; // 1.91:1（横長の限界）
  * @returns クロップ済みのバッファ、または調整不要ならnull
  */
 async function adjustForInstagram(
-  imageBuffer: Buffer,
-  sharp: typeof import('sharp').default
+  imageBuffer: Buffer
 ): Promise<Buffer | null> {
   const metadata = await sharp(imageBuffer).metadata();
   const width = metadata.width;
@@ -131,11 +131,9 @@ export async function GET(
 
     // sharpでJPEGに変換（Instagram/Facebook Graph API互換性のため）
     try {
-      const sharp = (await import('sharp')).default;
-
       // Instagram用：アスペクト比の自動調整（4:5〜1.91:1の範囲にセンタークロップ）
       if (platform === 'instagram') {
-        const adjustedBuffer = await adjustForInstagram(imageBuffer, sharp);
+        const adjustedBuffer = await adjustForInstagram(imageBuffer);
         if (adjustedBuffer) {
           imageBuffer = adjustedBuffer;
         }
