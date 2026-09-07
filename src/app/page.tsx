@@ -269,12 +269,23 @@ export default async function DashboardPage() {
                         flexShrink: 0,
                         border: '1px solid var(--border-color)'
                       }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={post.media_url} 
-                          alt={post.title || 'Post image'} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
+                        {post.media_type === 'video' || (post.media_url && post.media_url.toLowerCase().includes('.mp4')) ? (
+                          <video 
+                            src={post.media_url} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            muted
+                            loop
+                            playsInline
+                            autoPlay
+                          />
+                        ) : (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img 
+                            src={post.media_url} 
+                            alt={post.title || 'Post image'} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        )}
                       </div>
                     )}
 

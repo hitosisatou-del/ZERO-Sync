@@ -271,12 +271,20 @@ export default function PostDetailClient({ post, initialResults }: PostDetailCli
                 marginBottom: '1.5rem',
                 maxHeight: '300px'
               }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src={post.media_url} 
-                  alt={post.title || 'Post image'} 
-                  style={{ maxWidth: '100%', width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
-                />
+                {post.media_type === 'video' || post.media_url.toLowerCase().includes('.mp4') ? (
+                  <video 
+                    src={post.media_url} 
+                    controls
+                    style={{ maxWidth: '100%', width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+                  />
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img 
+                    src={post.media_url} 
+                    alt={post.title || 'Post image'} 
+                    style={{ maxWidth: '100%', width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+                  />
+                )}
               </div>
             )}
 
